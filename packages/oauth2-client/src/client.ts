@@ -1,35 +1,38 @@
-import { IOAuth2Client, RequestClient, RequestOptions } from './types'
+import { RequestInit } from 'node-fetch'
+
+export type Request = (url: string, options?: RequestInit) => Promise<Response>
+
+export interface IOAuth2Client {
+    readonly clientId: string
+    readonly clientSecret: string
+    readonly redirectUri: string
+    generateAuthUrl(): string
+    callbackHandler(): any
+    revokeToken(): any
+}
 
 interface OAuth2ClientOptions {
     readonly clientId: string
     readonly clientSecret: string
     readonly redirectUri: string
-    readonly requestClient: RequestClient
+    readonly request: Request
 }
 
 export class OAuth2Client implements IOAuth2Client {
     readonly clientId: string
     readonly clientSecret: string
     readonly redirectUri: string
-    readonly #requestClient: RequestClient
+    readonly #request: Request
     constructor({
         clientId
         , clientSecret
         , redirectUri
-        , requestClient
+        , request
     }: OAuth2ClientOptions) {
         this.clientId = clientId
         this.clientSecret = clientSecret
         this.redirectUri = redirectUri
-        this.#requestClient = requestClient
-    }
-
-    async request(url: string, options: RequestOptions) {
-        const result = await this.#requestClient(url, options)
-        return {
-            raw: result
-            , status: result.status
-        }
+        this.#request = request
     }
 
     generateAuthUrl(): string {
@@ -37,7 +40,7 @@ export class OAuth2Client implements IOAuth2Client {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    callbackHandler() {}
+    callbackHandler() { }
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    revokeToken() {}
+    revokeToken() { }
 }

@@ -1,5 +1,0 @@
-class Request {
-    get() {
-
-    }
-}
