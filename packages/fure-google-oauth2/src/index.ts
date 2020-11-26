@@ -2,7 +2,7 @@ import { FureOAuth2Client } from 'fure-oauth2-client'
 import { UniqueSessionTokenManager } from 'fure-ustm'
 import { FureGoogleOAuth2Provider, GoogleOAuth2ProviderOptions } from './googleAuth2Provider'
 
-type Omittables = 'uniqueSessionTokenManager' | 'oAuth2Client' | 'provider'
+type Omittables = 'provider' | 'oAuth2Client' | 'uniqueSessionTokenManager'
 
 const createOAuth2GoogleProvider = (options: Omit<GoogleOAuth2ProviderOptions, Omittables>) => {
     const {
@@ -12,6 +12,7 @@ const createOAuth2GoogleProvider = (options: Omit<GoogleOAuth2ProviderOptions, O
         , clientSecret
         , redirectUri
     } = options
+
     const oAuth2Client = new FureOAuth2Client(clientId, clientSecret, redirectUri)
     const uniqueSessionTokenManager = new UniqueSessionTokenManager(store, state)
     return new FureGoogleOAuth2Provider({

@@ -1,8 +1,8 @@
 import querystring from 'querystring'
-import { Storage } from 'fure-storage'
-import { UniqueSessionTokenManager } from 'fure-ustm'
+import { IStorage } from 'fure-storage'
 import { getRequiredParam, isStore } from 'fure-shared'
-import { FureOAuth2Client } from 'fure-oauth2-client'
+import { IUniqueSessionTokenManager } from 'fure-ustm'
+import { IOAuth2Client } from 'fure-oauth2-client'
 
 export interface OAuth2ProviderOptions {
     readonly provider: string
@@ -11,10 +11,10 @@ export interface OAuth2ProviderOptions {
     readonly authPath: string
     readonly redirectUri: string
     readonly state?: boolean
-    readonly store?: Storage
+    readonly store?: IStorage
     readonly scope?: string[]
-    readonly oAuth2Client: FureOAuth2Client
-    readonly uniqueSessionTokenManager: UniqueSessionTokenManager
+    readonly oAuth2Client: IOAuth2Client
+    readonly uniqueSessionTokenManager: IUniqueSessionTokenManager
 }
 
 export class FureOAuth2Provider {
@@ -25,10 +25,10 @@ export class FureOAuth2Provider {
     readonly redirectUri: string
     readonly scope: string[]
     readonly state: boolean
-    protected readonly store: Storage
+    protected readonly store: IStorage
     protected readonly parsedRedirectUrl: URL
-    protected readonly oAuth2Client: FureOAuth2Client
-    protected readonly uniqueSessionTokenManager: UniqueSessionTokenManager
+    protected readonly oAuth2Client: IOAuth2Client
+    protected readonly uniqueSessionTokenManager: IUniqueSessionTokenManager
     protected constructor({
         provider
         , clientId

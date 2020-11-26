@@ -1,7 +1,7 @@
 import querystring from 'querystring'
 import { FureOAuth2Client } from 'fure-oauth2-client'
 import { camelize, getRequiredParam } from 'fure-shared'
-import { UniqueSessionTokenManager } from 'fure-ustm'
+import { IUniqueSessionTokenManager } from 'fure-ustm'
 
 type UserInfo = {
     email: string
@@ -38,7 +38,7 @@ interface GoogleOAutoOpenIDApiOptions {
     readonly prompt: Prompt
     readonly accessType: AccessType
     readonly oAuth2Client: FureOAuth2Client
-    readonly uniqueSessionTokenManager: UniqueSessionTokenManager
+    readonly uniqueSessionTokenManager: IUniqueSessionTokenManager
 }
 
 // https://developers.google.com/identity/protocols/oauth2/openid-connect
@@ -47,7 +47,7 @@ export class GoogleOAutoOpenIDApi {
     private readonly prompt: Prompt
     private readonly accessType: AccessType
     private readonly oAuth2Client: FureOAuth2Client
-    private readonly uniqueSessionTokenManager: UniqueSessionTokenManager
+    private readonly uniqueSessionTokenManager: IUniqueSessionTokenManager
     constructor({
         scope
         , prompt
