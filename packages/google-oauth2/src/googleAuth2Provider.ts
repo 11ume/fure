@@ -166,7 +166,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     }
 
     /**
-     * Generate redirection URI for consent page landing.
+     * Generate URI for consent page landing.
      * @return URI to consent page.
      */
     generateAuthUrl(options: GenerateAuthUrlOptions = {}): string {

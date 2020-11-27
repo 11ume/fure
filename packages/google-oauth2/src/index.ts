@@ -8,7 +8,17 @@ interface CreateFureGoogleOAuthProOps extends GoogleOAuth2ProviderOptions {
     readonly redirectUri: string
 }
 
+/**
+ * The base endpoints for handle authentication.
+ */
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
+
+// The base endpoint for token retrieval.
+// const GOOGLE_TOKEN_URL = 'https://www.googleapis.com/oauth2/v4/token'
+// The base endpoint for get token information.
+// const GOOGLE_TOKEN_INFO_URL = 'https://oauth2.googleapis.com/tokeninfo'
+// The base endpoint for get user information.
+// const GOOGLE_USER_INFO = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 const createFureOAuth2GoogleProvider = (options: Omit<CreateFureGoogleOAuthProOps, Omittables>) => {
     const {
