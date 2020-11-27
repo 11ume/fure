@@ -14,14 +14,15 @@ export type GenerateAuthUrlOptions = {
 
 export class OAuth2Client {
     /**
-     * The client ID for your application.
-     * Common found in your app's dashboard.
+     * Your application ID.
      */
     readonly clientId: string
 
     /**
-     * The unique key of you application.
-     * Common found in your app's dashboard.
+     * Your unique app secret.
+     * This app secret should never be included in client-side code or in binaries that
+     * could be decompiled. It is extremely important that it remains completely secret
+     * as it is the core of the security of your app and all the people using it.
      */
     readonly clientSecret: string
 

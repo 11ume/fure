@@ -145,12 +145,12 @@ export class FureOAuth2Provider {
         throw new Error('Invalid storage, a valid storage object method must be passed')
     }
 
-    protected queryStringParseRedirectUri(currentUrl: URL) {
+    protected queryStringParseRedirectUri(currentUrl: URL): querystring.ParsedUrlQuery {
         const urlWhioutQuestionMark = currentUrl.search.slice(1)
         return querystring.parse(urlWhioutQuestionMark)
     }
 
-    protected handlerRedictUriParamState(parsedredirectUri: querystring.ParsedUrlQuery) {
+    protected handlerRedictUriParamState(parsedredirectUri: querystring.ParsedUrlQuery): void {
         const paramState = getRequiredParam('state', parsedredirectUri.state)
         if (this.uniqueSessionTokenManager.valid(paramState)) return
         throw new Error('The state param code is missing, or it has been altered')

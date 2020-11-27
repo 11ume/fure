@@ -53,7 +53,7 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
      * @value consent - the user for consent.
      * @value select_account - Prompt the user to select an account.
      */
-    prompt?: string
+    prompt?: Prompt
 
     /**
      * Recommended. Specifies what method was used to encode a 'code_verifier'
@@ -103,6 +103,12 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         this.accessType = accessType
     }
 
+    private checkCodeChallange(codeChallengeMethod: string, codeChallenge: string): void {
+        if (codeChallengeMethod && !codeChallenge) {
+            throw new Error('If a code_challenge_method is provided, code_challenge must be included.')
+        }
+    }
+
     /**
      * Generate URI for consent page landing.
      * @return URI to consent page.
@@ -110,12 +116,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     generateAuthUrl(options: IGoogleGenerateAuthUrlOptions = {}): string {
         const redirectUri = options.redirect_uri ?? this.oAuth2Client.redirectUri
         const responseType = options.response_type ?? 'code'
-        if (options.code_challenge_method && !options.code_challenge) {
-            throw new Error(
-                'If a code_challenge_method is provided, code_challenge must be included.'
-            )
-        }
-
+        this.checkCodeChallange(options.code_challenge_method, options.code_challenge)
         const opts = {
             scope: this.scope
             , client_id: this.oAuth2Client.clientId
