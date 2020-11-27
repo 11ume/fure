@@ -47,12 +47,11 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
     /**
      * Optional. A space-delimited, case-sensitive list of prompts to present the
      * user. If you don't specify this parameter, the user will be prompted only
-     * the first time your app requests access.  Possible values are:
-     *
-     * 'none' - Donot display any authentication or consent screens. Must not be
-     *        specified with other values.
-     * 'consent' - 	Prompt the user for consent.
-     * 'select_account' - Prompt the user to select an account.
+     * the first time your app requests access.
+     * Possible values are:
+     * @value none - Donot display any authentication or consent screens. Must not be specified with other values.
+     * @value consent - the user for consent.
+     * @value select_account - Prompt the user to select an account.
      */
     prompt?: string
 

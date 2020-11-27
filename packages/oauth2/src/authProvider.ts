@@ -26,13 +26,10 @@ export interface IGenerateAuthUrlOptions {
      * @required
      * Determines whether the response data included when the redirect back to the app occurs is in URL parameters or fragments. See the Confirming Identity section to choose which type your app should use.
      * This can be one of:
-     * @type code: Response data is included as URL parameters and contains code parameter (an encrypted string unique to each login request). This is the default behavior if this parameter is not specified.
+     * @value code - Response data is included as URL parameters and contains code parameter (an encrypted string unique to each login request). This is the default behavior if this parameter is not specified.
      * It's most useful when your server will be handling the token.
-     * @type token: Response data is included as a URL fragment and contains an access token. Desktop apps must use this setting for response_type. This is most
+     * @value token - Response data is included as a URL fragment and contains an access token. Desktop apps must use this setting for response_type. This is most
      * useful when the client will be handling the token.
-     * @type code%20token: Response data is included as a URL fragment and contains both an access token and the code parameter.
-     * @type granted_scopes: Returns a comma-separated list of all Permissions granted to the app by the user at the time of login. Can be combined with other response_type values. When combined with token, response
-     * data is included as a URL fragment, otherwise included as a URL parameter.
      */
     response_type?: string
 
@@ -83,8 +80,7 @@ export interface OAuth2ProviderOptions {
 
 export class FureOAuth2Provider {
     /**
-     * OAuth2 Authentication provider entity.
-     * Example: google, twitter, facebook, etc.
+     * Name of authentication provider entity.
      */
     readonly provider: string
 
@@ -105,13 +101,27 @@ export class FureOAuth2Provider {
      */
     readonly authenticationUrl: string
 
+    /**
+     * Is a storage entity for store temporary values to be verify in different stages like the unique session token.
+     */
     protected readonly store: IStorage
 
     /**
      * Parsed URI, used to redirect the client after authentication is complete.
      */
     protected readonly parsedRedirectUrl: URL
+
+    /**
+     * Authentication client for OAuth 2.0 protocol.
+     */
     protected readonly oAuth2Client: OAuth2Client
+
+    /*
+     * An opaque string that is round-tripped in the protocol; that is to say, it is returned as a URI parameter in the Basic flow, and in the URI #fragment
+     * identifier in the Implicit flow.
+     * The state can be useful for correlating requests and responses.
+     * Because your redirect_uri can be guessed, using a state value can increase your assurance that an incoming connection is the result of an authentication request initiated by your app. If you generate a random string or encode the hash of some client state (e.g., a cookie) in this state variable, you can validate the response to additionally ensure that the request and response originated in the same browser. This provides protection against attacks such as cross-site request forgery.
+     **/
     protected readonly uniqueSessionTokenManager: IUniqueSessionTokenManager
     protected constructor(provider: string, {
         state
