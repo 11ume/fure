@@ -15,18 +15,18 @@ export type GenerateAuthUrlOptions = {
 export class OAuth2Client {
     /**
      * The client ID for your application.
-     * You can find this value in the API Console of you auth provider.
+     * Common found in your app's dashboard.
      */
     readonly clientId: string
 
     /**
      * The unique key of you application.
-     * You can find this value in the API Console of you auth provider.
+     * Common found in your app's dashboard.
      */
     readonly clientSecret: string
 
     /**
-     * The URI to redirect to after completing the auth request.
+     *  The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
      */
     readonly redirectUri: string
 

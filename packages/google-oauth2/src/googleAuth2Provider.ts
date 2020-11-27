@@ -1,23 +1,16 @@
 /* eslint-disable camelcase */
-import { IFureOAuth2Provider, FureOAuth2Provider, OAuth2ProviderOptions } from 'fure-oauth2'
+import {
+    IFureOAuth2Provider
+    , IGenerateAuthUrlOptions
+    , AccessType
+    , FureOAuth2Provider
+    , OAuth2ProviderOptions
+} from 'fure-oauth2'
 
 type Prompt = 'none' | 'consent' | 'select_account'
-type AccessType = 'offline' | 'online'
 type CodeChallengeMethod = 'plain' | 'S256'
 
-interface GenerateAuthUrlOptions {
-    /**
-     * Recommended. Indicates whether your application can refresh access tokens
-     * when the user is not present at the browser. Valid parameter values are
-     * 'online', which is the default value, and 'offline'. Set the value to
-     * 'offline' if your application needs to refresh access tokens when the user
-     * is not present at the browser. This value instructs the Google
-     * authorization server to return a refresh token and an access token the
-     * first time that your application exchanges an authorization code for
-     * tokens.
-     */
-    access_type?: string
-
+interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
     /**
      * The hd (hosted domain) parameter streamlines the login process for G Suite
      * hosted accounts. By including the domain of the G Suite user (for example,
@@ -31,56 +24,6 @@ interface GenerateAuthUrlOptions {
      * contained within a security token from Google, so the value can be trusted.
      */
     hd?: string
-
-    /**
-     * The 'response_type' will always be set to 'CODE'.
-     */
-    response_type?: string
-
-    /**
-     * Determines where the API server redirects the user after the user
-     * completes the authorization flow. The value must exactly match one of the
-     * 'redirect_uri' values listed for your project in the API Console. Note that
-     * the http or https scheme, case, and trailing slash ('/') must all match.
-     * The value passed into the constructor will be used if not provided.
-     */
-    redirect_uri?: string
-
-    /**
-     * Required. A space-delimited list of scopes that identify the resources that
-     * your application could access on the user's behalf. These values inform the
-     * consent screen that Google displays to the user. Scopes enable your
-     * application to only request access to the resources that it needs while
-     * also enabling users to control the amount of access that they grant to your
-     * application. Thus, there is an inverse relationship between the number of
-     * scopes requested and the likelihood of obtaining user consent. The
-     * OAuth 2.0 API Scopes document provides a full list of scopes that you might
-     * use to access Google APIs. We recommend that your application request
-     * access to authorization scopes in context whenever possible. By requesting
-     * access to user data in context, via incremental authorization, you help
-     * users to more easily understand why your application needs the access it is
-     * requesting.
-     */
-    scope?: string[] | string
-
-    /**
-     * Recommended. Specifies any string value that your application uses to
-     * maintain state between your authorization request and the authorization
-     * server's response. The server returns the exact value that you send as a
-     * name=value pair in the hash (#) fragment of the 'redirect_uri' after the
-     * user consents to or denies your application's access request. You can use
-     * this parameter for several purposes, such as directing the user to the
-     * correct resource in your application, sending nonces, and mitigating
-     * cross-site request forgery. Since your redirect_uri can be guessed, using a
-     * state value can increase your assurance that an incoming connection is the
-     * result of an authentication request. If you generate a random string or
-     * encode the hash of a cookie or another value that captures the client's
-     * state, you can validate the response to additionally ensure that the
-     * request and response originated in the same browser, providing protection
-     * against attacks such as cross-site request forgery. See the OpenID Connect
-     * documentation for an example of how to create and confirm a state token.
-     */
-    state?: string
 
     /**
      * Optional. Enables applications to use incremental authorization to request
@@ -130,6 +73,7 @@ interface GenerateAuthUrlOptions {
      */
     code_challenge?: string
 }
+
 export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
     readonly prompt?: Prompt
     readonly accessType?: AccessType
@@ -147,10 +91,9 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , store
         , oAuth2Client
         , uniqueSessionTokenManager
-    }: Omit<GoogleOAuth2ProviderOptions, 'provider'>) {
-        super({
-            provider: 'google'
-            , authPath
+    }: GoogleOAuth2ProviderOptions) {
+        super('google', {
+            authPath
             , scope
             , state
             , store
@@ -165,7 +108,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
      * Generate URI for consent page landing.
      * @return URI to consent page.
      */
-    generateAuthUrl(options: GenerateAuthUrlOptions = {}): string {
+    generateAuthUrl(options: IGoogleGenerateAuthUrlOptions = {}): string {
         const redirectUri = options.redirect_uri ?? this.oAuth2Client.redirectUri
         const responseType = options.response_type ?? 'code'
         if (options.code_challenge_method && !options.code_challenge) {
@@ -190,8 +133,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
      * @return user information, this can varies depending of the "scope" parameter.
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    callbackHandler() {}
+    callbackHandler() { }
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    revokeToken() {}
+    revokeToken() { }
 }
 
