@@ -11,6 +11,7 @@ interface OAuth2ClientOptions {
 export type GenerateAuthUrlOptions = {
     [key: string]: any
 }
+
 export class OAuth2Client {
     readonly clientId: string
     readonly clientSecret: string
