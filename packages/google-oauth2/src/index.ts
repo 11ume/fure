@@ -1,25 +1,33 @@
-import { FureOAuth2Client } from 'fure-oauth2-client'
-import { UniqueSessionTokenManager } from 'fure-ustm'
 import { FureGoogleOAuth2Provider, GoogleOAuth2ProviderOptions } from './googleAuth2Provider'
+import { OAuth2Client } from 'fure-oauth2-client'
 
 type Omittables = 'provider' | 'oAuth2Client' | 'uniqueSessionTokenManager'
+interface CreateFureGoogleOAuthProOps extends GoogleOAuth2ProviderOptions {
+    readonly clientId: string
+    readonly clientSecret: string
+    readonly redirectUri: string
+}
 
-const createOAuth2GoogleProvider = (options: Omit<GoogleOAuth2ProviderOptions, Omittables>) => {
+const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
+
+const createFureOAuth2GoogleProvider = (options: Omit<CreateFureGoogleOAuthProOps, Omittables>) => {
     const {
-        store
-        , state
-        , clientId
+        clientId
         , clientSecret
+        , authPath
         , redirectUri
     } = options
+    const oAuth2Client = new OAuth2Client({
+        clientId
+        , clientSecret
+        , redirectUri
+        , authenticationUrl: GOOGLE_AUTH_URL
+    })
 
-    const oAuth2Client = new FureOAuth2Client(clientId, clientSecret, redirectUri)
-    const uniqueSessionTokenManager = new UniqueSessionTokenManager(store, state)
     return new FureGoogleOAuth2Provider({
-        oAuth2Client
-        , uniqueSessionTokenManager
-        , ...options
+        authPath
+        , oAuth2Client
     })
 }
 
-export default createOAuth2GoogleProvider
+export default createFureOAuth2GoogleProvider

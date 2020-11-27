@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { FureOAuth2Provider, OAuth2ProviderOptions } from 'fure-oauth2'
+import { IFureOAuth2Provider, FureOAuth2Provider, OAuth2ProviderOptions } from 'fure-oauth2'
 
 type Prompt = 'none' | 'consent' | 'select_account'
 type AccessType = 'offline' | 'online'
@@ -36,12 +36,6 @@ interface GenerateAuthUrlOptions {
      * The 'response_type' will always be set to 'CODE'.
      */
     response_type?: string
-
-    /**
-     * The client ID for your application. The value passed into the constructor
-     * will be used if not provided. You can find this value in the API Console.
-     */
-    client_id?: string
 
     /**
      * Determines where the API server redirects the user after the user
@@ -139,21 +133,17 @@ interface GenerateAuthUrlOptions {
 
 // https://developers.google.com/identity/protocols/oauth2/scopes
 const DEFAULT_SCOPES = ['openid', 'email', 'profile']
-const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 
 export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
     readonly prompt?: Prompt
     readonly accessType?: AccessType
 }
 
-export class FureGoogleOAuth2Provider extends FureOAuth2Provider {
+export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider {
     readonly prompt: Prompt
     readonly accessType: AccessType
     constructor({
-        clientId
-        , clientSecret
-        , authPath
-        , redirectUri
+        authPath
         , scope = DEFAULT_SCOPES
         , state = false
         , store = null
@@ -164,11 +154,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider {
     }: Omit<GoogleOAuth2ProviderOptions, 'provider'>) {
         super({
             provider: 'google'
-            , authenticationUrl: GOOGLE_AUTH_URL
-            , clientId
-            , clientSecret
             , authPath
-            , redirectUri
             , scope
             , state
             , store
@@ -183,8 +169,9 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider {
      * Generate redirection URI for consent page landing.
      * @return URI to consent page.
      */
-    generateAuthUrl(options: GenerateAuthUrlOptions): string {
-        const responseType = options.response_type || 'code'
+    generateAuthUrl(options: GenerateAuthUrlOptions = {}): string {
+        const redirectUri = options.redirect_uri ?? this.oAuth2Client.redirectUri
+        const responseType = options.response_type ?? 'code'
         if (options.code_challenge_method && !options.code_challenge) {
             throw new Error(
                 'If a code_challenge_method is provided, code_challenge must be included.'
@@ -192,8 +179,9 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider {
         }
 
         const opts = {
-            client_id: this.clientId
-            , redirect_uri: this.redirectUri
+            scope: this.scope
+            , client_id: this.oAuth2Client.clientId
+            , redirect_uri: redirectUri
             , response_type: responseType
         }
 
