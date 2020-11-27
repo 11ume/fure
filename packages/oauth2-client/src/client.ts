@@ -55,6 +55,7 @@ export class OAuth2Client {
         const params = querystring.stringify({
             ...options
             , scope
+            , client_id: this.clientId
         })
         return `${this.authenticationUrl}?${params}`
     }
