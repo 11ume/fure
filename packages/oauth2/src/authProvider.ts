@@ -21,24 +21,38 @@ export interface OAuth2ProviderOptions {
 }
 
 export class FureOAuth2Provider {
-    readonly provider: string
     /**
-     * The client ID for your application. The value passed into the constructor
-     * will be used if not provided. You can find this value in the API Console.
+     * OAuth2 Authentication provider entity.
+     * Example: google, twitter, facebook, etc.
      */
+    readonly provider: string
+
     readonly authPath: string
+
     /**
-     * Determines where the API server redirects the user after the user
-     * completes the authorization flow. The value must exactly match one of the
-     * 'redirect_uri' values listed for your project in the API Console. Note that
-     * the http or https scheme, case, and trailing slash ('/') must all match.
-     * The value passed into the constructor will be used if not provided.
+     * An opaque string that is round-tripped in the protocol.
+     * The state can be useful for correlating requests and responses.
      */
     readonly state: boolean
+
+    /**
+     * An array of scopes that the user granted access to.
+     * @link https://developers.google.com/identity/protocols/oauth2/scopes
+     */
     readonly scope: string[]
+
+    /**
+     * The base endpoints URL for handle authentication.
+     */
     readonly authenticationUrl: string
+
     protected readonly store: IStorage
+
+    /**
+     * The URI to redirect to after completing the authentication, but parse for URI constructor.
+     */
     protected readonly parsedRedirectUrl: URL
+
     protected readonly oAuth2Client: OAuth2Client
     protected readonly uniqueSessionTokenManager: IUniqueSessionTokenManager
     protected constructor({
@@ -46,7 +60,7 @@ export class FureOAuth2Provider {
         , authPath
         , state
         , scope
-        , store
+        , store = null
         , oAuth2Client
         , uniqueSessionTokenManager = null
     }: OAuth2ProviderOptions) {

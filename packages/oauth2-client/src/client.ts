@@ -13,9 +13,26 @@ export type GenerateAuthUrlOptions = {
 }
 
 export class OAuth2Client {
+    /**
+     * The client ID for your application.
+     * You can find this value in the API Console of you auth provider.
+     */
     readonly clientId: string
+
+    /**
+     * The unique key of you application.
+     * You can find this value in the API Console of you auth provider.
+     */
     readonly clientSecret: string
+
+    /**
+     * The URI to redirect to after completing the auth request.
+     */
     readonly redirectUri: string
+
+    /**
+     * URL used for create an authorization request link.
+     */
     readonly authenticationUrl: string
     constructor({
         clientId

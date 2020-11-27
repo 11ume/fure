@@ -130,10 +130,6 @@ interface GenerateAuthUrlOptions {
      */
     code_challenge?: string
 }
-
-// https://developers.google.com/identity/protocols/oauth2/scopes
-const DEFAULT_SCOPES = ['openid', 'email', 'profile']
-
 export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
     readonly prompt?: Prompt
     readonly accessType?: AccessType
@@ -144,11 +140,11 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     readonly accessType: AccessType
     constructor({
         authPath
-        , scope = DEFAULT_SCOPES
+        , scope = ['openid', 'email', 'profile']
         , state = false
-        , store = null
         , prompt = null
         , accessType = 'offline'
+        , store
         , oAuth2Client
         , uniqueSessionTokenManager
     }: Omit<GoogleOAuth2ProviderOptions, 'provider'>) {
