@@ -103,7 +103,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         this.accessType = accessType
     }
 
-    private checkCodeChallange(codeChallengeMethod: string, codeChallenge: string): void {
+    private checkParamChallange(codeChallengeMethod: string, codeChallenge: string): void {
         if (codeChallengeMethod && !codeChallenge) {
             throw new Error('If a code_challenge_method is provided, code_challenge must be included.')
         }
@@ -116,13 +116,13 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     generateAuthUrl(options: IGoogleGenerateAuthUrlOptions = {}): string {
         const redirectUri = options.redirect_uri ?? this.oAuth2Client.redirectUri
         const responseType = options.response_type ?? 'code'
-        this.checkCodeChallange(options.code_challenge_method, options.code_challenge)
         const params = {
             scope: this.scope
             , redirect_uri: redirectUri
             , response_type: responseType
         }
 
+        this.checkParamChallange(options.code_challenge_method, options.code_challenge)
         return this.oAuth2Client.generateAuthUrl(params)
     }
 
