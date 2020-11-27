@@ -2,18 +2,37 @@ import querystring from 'querystring'
 import { IStorage } from 'fure-storage'
 import { getRequiredParam, isStore } from 'fure-shared'
 import { IUniqueSessionTokenManager } from 'fure-ustm'
-import { IOAuth2Client } from 'fure-oauth2-client'
+import { OAuth2Client } from 'fure-oauth2-client'
+
+export interface IOAuth2Client {
+    readonly clientId: string
+    readonly clientSecret: string
+    readonly redirectUri: string
+    generateAuthUrl(): string
+    callbackHandler(): any
+    revokeToken(): any
+}
+
+export interface IFureOAuth2Provider {
+    readonly clientId: string
+    readonly clientSecret: string
+    readonly redirectUri: string
+    generateAuthUrl(): string
+    callbackHandler(): any
+    revokeToken(): any
+}
 
 export interface OAuth2ProviderOptions {
     readonly provider: string
     readonly clientId: string
     readonly clientSecret: string
+    readonly authenticationUrl: string
     readonly authPath: string
     readonly redirectUri: string
     readonly state?: boolean
-    readonly store?: IStorage
     readonly scope?: string[]
-    readonly oAuth2Client: IOAuth2Client
+    readonly store?: IStorage
+    readonly oAuth2Client: OAuth2Client
     readonly uniqueSessionTokenManager: IUniqueSessionTokenManager
 }
 
@@ -23,20 +42,22 @@ export class FureOAuth2Provider {
     readonly clientSecret: string
     readonly authPath: string
     readonly redirectUri: string
-    readonly scope: string[]
     readonly state: boolean
+    readonly scope: string[]
+    readonly authenticationUrl: string
     protected readonly store: IStorage
     protected readonly parsedRedirectUrl: URL
-    protected readonly oAuth2Client: IOAuth2Client
+    protected readonly oAuth2Client: OAuth2Client
     protected readonly uniqueSessionTokenManager: IUniqueSessionTokenManager
     protected constructor({
         provider
         , clientId
         , clientSecret
+        , authenticationUrl
         , authPath
         , redirectUri
-        , scope
         , state
+        , scope
         , store
         , oAuth2Client
         , uniqueSessionTokenManager
@@ -44,19 +65,20 @@ export class FureOAuth2Provider {
         this.provider = provider
         this.clientId = clientId
         this.clientSecret = clientSecret
+        this.authenticationUrl = authenticationUrl
         this.authPath = authPath
         this.redirectUri = redirectUri
-        this.scope = scope
         this.state = state
+        this.scope = scope
         this.store = store
-        this.parsedRedirectUrl = new URL(this.redirectUri)
         this.oAuth2Client = oAuth2Client
         this.uniqueSessionTokenManager = uniqueSessionTokenManager
-        this.checkStorage()
+        this.parsedRedirectUrl = new URL(this.redirectUri)
+        this.state && this.checkStorage()
     }
 
     private checkStorage(): void {
-        if (this.state && this.store && isStore(this.store)) return
+        if (this.store && isStore(this.store)) return
         throw new Error('Invalid storage, a valid storage object method must be passed')
     }
 
