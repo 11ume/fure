@@ -140,6 +140,10 @@ export class FureOAuth2Provider extends FureProvider {
         return this.#oAuth2Client.redirectUri
     }
 
+    /**
+     *  Check state property constraints.
+     *  If state property state is false, store property should not be provided.
+     */
     private checkState(): void {
         if (this.state === false && this.store !== null) {
             throw new Error('If you pass a Storage entity, the state parameter must be true')
@@ -147,7 +151,8 @@ export class FureOAuth2Provider extends FureProvider {
     }
 
     /**
-     *  If state property is true, an object that implements the Storage interface must be provided.
+     *  Check store property constraints.
+     *  If state property is true, an Storage object that implements the IStorage interface must be provided.
      */
     private checkStorage(): void {
         if (this.state) {
