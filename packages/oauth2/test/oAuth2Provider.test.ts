@@ -18,7 +18,7 @@ const createOAuth2Client = () => new OAuth2Client({
     , authenticationUrl
 })
 
-test('create an fure oAuth2 provider instance', (t) => {
+test('create fure oAuth2 provider instance', (t) => {
     const oAuth2Client = createOAuth2Client()
     const fureOAuth2Provider = new DummyFureOAuth2Provider(provider, {
         state: false
@@ -36,7 +36,7 @@ test('create an fure oAuth2 provider instance', (t) => {
     t.is(fureOAuth2Provider.storage, null)
 })
 
-test('when state is "true" and store is "null"', (t) => {
+test('throws when state is "true" and store is "null"', (t) => {
     const oAuth2Client = createOAuth2Client()
     const error = t.throws(() => new DummyFureOAuth2Provider(provider, {
         state: true
@@ -47,7 +47,7 @@ test('when state is "true" and store is "null"', (t) => {
     t.is(error.message, 'If the state parameter is true, you must pass a valid storage entity')
 })
 
-test('when state is "false" and a valid storage entity is passed', (t) => {
+test('throws when state is "false" and a valid storage entity is passed', (t) => {
     const oAuth2Client = createOAuth2Client()
     const store = new DummyStore()
     const error = t.throws(() => new DummyFureOAuth2Provider(provider, {
@@ -60,7 +60,7 @@ test('when state is "false" and a valid storage entity is passed', (t) => {
     t.is(error.message, 'If you pass a Storage entity, the state parameter must be true')
 })
 
-test('check state when is "true" and a "invalid" storage "literal" entity is passed', (t) => {
+test('throws when state is "true" and a "invalid" storage "literal" entity is passed', (t) => {
     const oAuth2Client = createOAuth2Client()
     const store: any = {
         add: () => undefined
