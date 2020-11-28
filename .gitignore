@@ -2,3 +2,4 @@ node_modules
 dev
 *.env
 *.vscode
+*.log
