@@ -136,7 +136,7 @@ export class FureOAuth2Provider extends FureProvider {
      *  If state property is true, an object that implements the Storage interface must be provided.
      */
     private checkStorage(): void {
-        if (this.state) return
+        if (this.state === false) return
         if (this.store && isStore(this.store)) return
         throw new Error('Invalid storage, a valid storage object method must be defined')
     }
