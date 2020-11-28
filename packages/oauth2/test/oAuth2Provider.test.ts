@@ -71,7 +71,7 @@ test('check state when is "true" and a "invalid" storage "literal" entity is pas
         , oAuth2Client
     }))
 
-    t.is(error.message, 'Invalid storage, a valid storage object method must be defined')
+    t.is(error.message, 'Invalid storage, a valid storage object method must be provided')
 })
 
 test('when state is "true" and a valid storage entity is passed', (t) => {
