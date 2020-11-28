@@ -78,7 +78,8 @@ export class FureOAuth2Provider extends FureProvider {
     readonly scope: string[]
 
     /**
-     * Is a storage entity for store temporary values to be verify in different stages like the unique session token.
+     * Is a storage entity, for store and compare temporal values in different stages,
+     * like the unique session token value.
      */
     protected readonly store: IStorage
 
@@ -114,7 +115,7 @@ export class FureOAuth2Provider extends FureProvider {
         this.#oAuth2Client = oAuth2Client
         this.uniqueSessionTokenManager = uniqueSessionTokenManager
         this.parsedRedirectUrl = new URL(this.#oAuth2Client.redirectUri)
-        this.state && this.checkStorage()
+        this.checkStorage()
     }
 
     /**
@@ -131,9 +132,13 @@ export class FureOAuth2Provider extends FureProvider {
         return this.#oAuth2Client.redirectUri
     }
 
+    /**
+     *  If state property is true, an object that implements the Storage interface must be provided.
+     */
     private checkStorage(): void {
+        if (this.state) return
         if (this.store && isStore(this.store)) return
-        throw new Error('Invalid storage, a valid storage object method must be passed')
+        throw new Error('Invalid storage, a valid storage object method must be defined')
     }
 
     /**
