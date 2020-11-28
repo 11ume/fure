@@ -115,7 +115,15 @@ export class FureOAuth2Provider extends FureProvider {
         this.#oAuth2Client = oAuth2Client
         this.uniqueSessionTokenManager = uniqueSessionTokenManager
         this.parsedRedirectUrl = new URL(this.#oAuth2Client.redirectUri)
+        this.checkState()
         this.checkStorage()
+    }
+
+    /**
+    * Your application ID.
+    */
+    get clientId(): string {
+        return this.#oAuth2Client.clientId
     }
 
     /**
@@ -130,6 +138,12 @@ export class FureOAuth2Provider extends FureProvider {
      */
     get redirectUri(): string {
         return this.#oAuth2Client.redirectUri
+    }
+
+    private checkState(): void {
+        if (this.state === false && this.store !== null) {
+            throw new Error('If you pass a Storage entity, the state parameter must be true')
+        }
     }
 
     /**
