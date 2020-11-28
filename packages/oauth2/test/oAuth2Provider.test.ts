@@ -108,23 +108,3 @@ test('when state is "true" and a "valid" storage "literal" entity is passed', (t
 
     t.notThrows(fureOAuth2Provider)
 })
-
-test('when state is "true" and a "valid" storage "literal" entity is passed', (t) => {
-    const oAuth2Client = createOAuth2Client()
-    const store: IStorage = {
-        add: () => undefined
-        , get: () => ({
-            value: 'foo'
-        })
-        , remove: () => true
-    }
-
-    const fureOAuth2Provider = () => new DummyFureOAuth2Provider(provider, {
-        state: true
-        , scope
-        , store
-        , oAuth2Client
-    })
-
-    t.notThrows(fureOAuth2Provider)
-})
