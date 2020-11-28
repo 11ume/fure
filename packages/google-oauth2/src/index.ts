@@ -1,7 +1,7 @@
 import { FureGoogleOAuth2Provider, GoogleOAuth2ProviderOptions } from './googleAuth2Provider'
 import { OAuth2Client } from 'fure-oauth2-client'
 
-type Omittables = 'provider' | 'oAuth2Client' | 'uniqueSessionTokenManager'
+type Omittables = 'provider' | 'oAuth2Client' | 'uniqueSessionTokenManager' | 'authenticationUrl'
 interface CreateFureGoogleOAuthProOps extends GoogleOAuth2ProviderOptions {
     readonly clientId: string
     readonly clientSecret: string

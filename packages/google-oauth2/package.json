@@ -10,7 +10,7 @@
     "email": "horacioriverods@gmail.com"
   },
   "scripts": {
-    "start": "env $(cat .env) ts-node example.ts",
+    "test": "ava",
     "build": "yarn run clean && yarn run compile",
     "clean": "rm -rf ./dist",
     "compile": "tsc -p tsconfig.json",
@@ -21,6 +21,7 @@
     "fure-oauth2-client": "1.0.0-alpha.0"
   },
   "devDependencies": {
+    "@ava/babel": "^1.0.1",
     "@types/node": "^14.14.10",
     "ava": "^3.13.0",
     "typescript": "^4.1.2"
