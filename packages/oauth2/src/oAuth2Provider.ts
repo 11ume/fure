@@ -151,7 +151,10 @@ export class FureOAuth2Provider extends FureProvider {
      */
     private checkStorage(): void {
         if (this.state === false) return
-        if (this.store && isStore(this.store)) return
+        if (this.store === null) {
+            throw new Error('If the state parameter is true, you must pass a valid storage entity')
+        }
+        if (isStore(this.store)) return
         throw new Error('Invalid storage, a valid storage object method must be defined')
     }
 
