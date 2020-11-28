@@ -82,8 +82,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     readonly prompt: Prompt
     readonly accessType: AccessType
     constructor({
-        authPath
-        , scope = ['openid', 'email', 'profile']
+        scope = ['openid', 'email', 'profile']
         , state = false
         , prompt = null
         , accessType = 'offline'
@@ -92,8 +91,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , uniqueSessionTokenManager
     }: GoogleOAuth2ProviderOptions) {
         super('google', {
-            authPath
-            , scope
+            scope
             , state
             , store
             , oAuth2Client

@@ -23,7 +23,6 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const createFureOAuth2GoogleProvider = ({
     clientId
     , clientSecret
-    , authPath
     , redirectUri
 }: Omit<CreateFureGoogleOAuthProOps, Omittables>) => {
     const oAuth2Client = new OAuth2Client({
@@ -34,8 +33,7 @@ const createFureOAuth2GoogleProvider = ({
     })
 
     return new FureGoogleOAuth2Provider({
-        authPath
-        , oAuth2Client
+        oAuth2Client
     })
 }
 

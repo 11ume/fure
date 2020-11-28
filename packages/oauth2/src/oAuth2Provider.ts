@@ -71,7 +71,6 @@ export interface IFureOAuth2Provider {
 }
 
 export interface OAuth2ProviderOptions {
-    readonly authPath: string
     readonly state?: boolean
     readonly scope?: string[]
     readonly store?: IStorage
