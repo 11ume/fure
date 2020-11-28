@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import querystring from 'querystring'
+import { FureProvider } from 'fure-provider'
 import { IStorage } from 'fure-storage'
 import { getRequiredParam, isStore } from 'fure-shared'
 import { IUniqueSessionTokenManager } from 'fure-ustm'
@@ -78,12 +79,7 @@ export interface OAuth2ProviderOptions {
     readonly uniqueSessionTokenManager?: IUniqueSessionTokenManager
 }
 
-export class FureOAuth2Provider {
-    /**
-     * Name of authentication provider entity.
-     */
-    readonly provider: string
-
+export class FureOAuth2Provider extends FureProvider {
     /**
      * An opaque string that is round-tripped in the protocol.
      * The state can be useful for correlating requests and responses.
@@ -130,7 +126,7 @@ export class FureOAuth2Provider {
         , oAuth2Client
         , uniqueSessionTokenManager = null
     }: OAuth2ProviderOptions) {
-        this.provider = provider
+        super(provider)
         this.state = state
         this.scope = scope
         this.store = store

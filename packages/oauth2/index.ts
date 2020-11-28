@@ -1,1 +1,1 @@
-export * from './src/authProvider'
+export * from './src/oAuth2Provider'
