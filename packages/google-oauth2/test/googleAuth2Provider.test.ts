@@ -25,26 +25,6 @@ test('generation of generic authentication URL', (t) => {
 })
 
 // test('generation of generic authentication URL, pass optional parameters', (t) => {
-//     const googleAauth2 = fureOAuth2GoogleProvider({
-//         clientId
-//         , clientSecret
-//         , redirectUri
-//     })
-
-//     const options = {
-//         response_type: 'code token'
-//         , access_type: 'online'
-//     }
-
-//     const url = googleAauth2.generateAuthUrl()
-//     const { searchParams, origin, pathname } = new URL(url)
-
-//     t.is(origin + pathname, googleAauth2.authenticationUrl)
-//     t.is(searchParams.get('response_type'), 'code')
-//     t.is(searchParams.get('access_type'), 'offline')
-//     t.is(searchParams.get('scope'), googleAauth2.scope.join(' '))
-//     t.is(searchParams.get('client_id'), clientId)
-//     t.is(searchParams.get('redirect_uri'), redirectUri)
 // })
 
 // test('generation of generic authentication URL, whit all supported parameters', (t) => {

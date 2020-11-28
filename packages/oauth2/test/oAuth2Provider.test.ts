@@ -1,29 +1,22 @@
 import test from 'ava'
 import { DummyFureOAuth2Provider } from './healpers/dummyFureOAuth2Provider'
 import { FureOAuth2Provider } from '..'
-import { OAuth2Client } from 'fure-oauth2-client'
 import { DummyStore, IStorage } from 'fure-storage'
 
+const provider = 'dummy provider'
 const clientId = '1234'
 const clientSecret = 'abcd'
+const scope = ['foo', 'bar']
 const redirectUri = 'http://localhost:3000/auth/callback'
 const authenticationUrl = 'https://accounts.com/oauth2/auth'
-const scope = ['foo', 'bar']
-const provider = 'dummy provider'
-
-const createOAuth2Client = () => new OAuth2Client({
-    clientId
-    , clientSecret
-    , redirectUri
-    , authenticationUrl
-})
 
 test('create fure oAuth2 provider instance', (t) => {
-    const oAuth2Client = createOAuth2Client()
-    const fureOAuth2Provider = new DummyFureOAuth2Provider(provider, {
+    const fureOAuth2Provider = new DummyFureOAuth2Provider(provider, authenticationUrl, {
         state: false
         , scope
-        , oAuth2Client
+        , clientId
+        , clientSecret
+        , redirectUri
     })
 
     t.true(fureOAuth2Provider instanceof FureOAuth2Provider)
@@ -37,54 +30,58 @@ test('create fure oAuth2 provider instance', (t) => {
 })
 
 test('throws when state is "true" and store is "null"', (t) => {
-    const oAuth2Client = createOAuth2Client()
-    const error = t.throws(() => new DummyFureOAuth2Provider(provider, {
+    const error = t.throws(() => new DummyFureOAuth2Provider(provider, authenticationUrl, {
         state: true
         , scope
-        , oAuth2Client
+        , clientId
+        , clientSecret
+        , redirectUri
     }))
 
     t.is(error.message, 'If the state parameter is true, you must pass a valid storage entity')
 })
 
 test('throws when state is "false" and a valid storage entity is passed', (t) => {
-    const oAuth2Client = createOAuth2Client()
     const store = new DummyStore()
-    const error = t.throws(() => new DummyFureOAuth2Provider(provider, {
+    const error = t.throws(() => new DummyFureOAuth2Provider(provider, authenticationUrl, {
         state: false
-        , scope
         , store
-        , oAuth2Client
+        , scope
+        , clientId
+        , clientSecret
+        , redirectUri
     }))
 
     t.is(error.message, 'If you pass a Storage entity, the state parameter must be true')
 })
 
 test('throws when state is "true" and a "invalid" storage "literal" entity is passed', (t) => {
-    const oAuth2Client = createOAuth2Client()
     const store: any = {
         add: () => undefined
         , remove: () => true
     }
 
-    const error = t.throws(() => new DummyFureOAuth2Provider(provider, {
+    const error = t.throws(() => new DummyFureOAuth2Provider(provider, authenticationUrl, {
         state: true
-        , scope
         , store
-        , oAuth2Client
+        , scope
+        , clientId
+        , clientSecret
+        , redirectUri
     }))
 
     t.is(error.message, 'Invalid storage, a valid storage object method must be provided')
 })
 
 test('when state is "true" and a valid storage entity is passed', (t) => {
-    const oAuth2Client = createOAuth2Client()
     const store = new DummyStore()
-    const fureOAuth2Provider = new DummyFureOAuth2Provider(provider, {
+    const fureOAuth2Provider = new DummyFureOAuth2Provider(provider, authenticationUrl, {
         state: true
-        , scope
         , store
-        , oAuth2Client
+        , scope
+        , clientId
+        , clientSecret
+        , redirectUri
     })
 
     t.true(fureOAuth2Provider.state)
@@ -92,7 +89,6 @@ test('when state is "true" and a valid storage entity is passed', (t) => {
 })
 
 test('when state is "true" and a "valid" storage "literal" entity is passed', (t) => {
-    const oAuth2Client = createOAuth2Client()
     const store: IStorage = {
         add: () => undefined
         , get: () => ({
@@ -101,11 +97,13 @@ test('when state is "true" and a "valid" storage "literal" entity is passed', (t
         , remove: () => true
     }
 
-    const fureOAuth2Provider = () => new DummyFureOAuth2Provider(provider, {
+    const fureOAuth2Provider = () => new DummyFureOAuth2Provider(provider, authenticationUrl, {
         state: true
-        , scope
         , store
-        , oAuth2Client
+        , scope
+        , clientId
+        , clientSecret
+        , redirectUri
     })
 
     t.notThrows(fureOAuth2Provider)

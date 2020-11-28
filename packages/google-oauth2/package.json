@@ -17,8 +17,7 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
-    "fure-oauth2": "1.0.0-alpha.0",
-    "fure-oauth2-client": "1.0.0-alpha.0"
+    "fure-oauth2": "1.0.0-alpha.0"
   },
   "devDependencies": {
     "@ava/babel": "^1.0.1",

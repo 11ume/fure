@@ -3,7 +3,7 @@ import querystring from 'querystring'
 import { FureProvider } from 'fure-provider'
 import { IStorage } from 'fure-storage'
 import { getRequiredParam, isStore } from 'fure-shared'
-import { IUniqueSessionTokenManager } from 'fure-ustm'
+import { UniqueSessionTokenManager, IUniqueSessionTokenManager } from 'fure-ustm'
 import { OAuth2Client, GenerateAuthUrlOptions } from 'fure-oauth2-client'
 
 export type AccessType = 'offline' | 'online'
@@ -57,11 +57,12 @@ export interface IFureOAuth2Provider {
 }
 
 export interface OAuth2ProviderOptions {
+    readonly clientId: string
+    readonly clientSecret: string
+    readonly redirectUri: string
     readonly state?: boolean
     readonly scope?: string[]
     readonly store?: IStorage
-    readonly oAuth2Client: OAuth2Client
-    readonly uniqueSessionTokenManager?: IUniqueSessionTokenManager
 }
 
 export class FureOAuth2Provider extends FureProvider {
@@ -86,7 +87,7 @@ export class FureOAuth2Provider extends FureProvider {
     /**
      * Parsed URI, used to redirect the client after authentication is complete.
      */
-    protected readonly parsedRedirectUrl: URL
+    // readonly #parsedRedirectUrl: URL
 
     /*
      * An opaque string that is round-tripped in the protocol; that is to say, it is returned as a URI parameter in the Basic flow, and in the URI #fragment
@@ -94,50 +95,72 @@ export class FureOAuth2Provider extends FureProvider {
      * The state can be useful for correlating requests and responses.
      * Because your redirect_uri can be guessed, using a state value can increase your assurance that an incoming connection is the result of an authentication request initiated by your app. If you generate a random string or encode the hash of some client state (e.g., a cookie) in this state variable, you can validate the response to additionally ensure that the request and response originated in the same browser. This provides protection against attacks such as cross-site request forgery.
      **/
-    protected readonly uniqueSessionTokenManager: IUniqueSessionTokenManager
+    readonly #uniqueSessionTokenManager: IUniqueSessionTokenManager = null
 
     /**
      * Authentication client for OAuth 2.0 protocol.
      */
     readonly #oAuth2Client: OAuth2Client
 
-    protected constructor(provider: string, {
-        state
+    protected constructor(provider: string, authenticationUrl: string, {
+        clientId
+        , clientSecret
+        , redirectUri
+        , state
         , scope
         , store = null
-        , oAuth2Client
-        , uniqueSessionTokenManager = null
     }: OAuth2ProviderOptions) {
         super(provider)
         this.state = state
         this.scope = scope
         this.store = store
-        this.uniqueSessionTokenManager = uniqueSessionTokenManager
-        this.#oAuth2Client = oAuth2Client
-        this.parsedRedirectUrl = new URL(this.#oAuth2Client.redirectUri)
         this.checkState()
         this.checkStorage()
+        // this.#parsedRedirectUrl = new URL(this.#oAuth2Client.redirectUri)
+        if (this.store && this.state) {
+            this.#uniqueSessionTokenManager = new UniqueSessionTokenManager(this.store, this.state)
+        }
+        this.#oAuth2Client = new OAuth2Client({
+            clientId
+            , clientSecret
+            , redirectUri
+            , authenticationUrl
+        })
+    }
+
+    get uniqueSessionTokenManager() {
+        return this.#uniqueSessionTokenManager
     }
 
     /**
-    * Your application ID.
-    */
-    get clientId(): string {
+     * Your application ID.
+     */
+    get clientId() {
         return this.#oAuth2Client.clientId
     }
 
     /**
-     * The base endpoints URL for handle authentication.
+     * Your unique app secret.
+     * This app secret should never be included in client-side code or in binaries that
+     * could be decompiled. It is extremely important that it remains completely secret
+     * as it is the core of the security of your app and all the people using it.
      */
-    get authenticationUrl(): string {
-        return this.#oAuth2Client.authenticationUrl
+    get clientSecret() {
+        return this.#oAuth2Client.clientSecret
     }
 
     /**
      *  The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
      */
-    get redirectUri(): string {
+    get redirectUri() {
         return this.#oAuth2Client.redirectUri
+    }
+
+    /**
+     * URL used for create an authorization request link.
+     */
+    get authenticationUrl() {
+        return this.#oAuth2Client.authenticationUrl
     }
 
     /**
@@ -177,9 +200,13 @@ export class FureOAuth2Provider extends FureProvider {
         return querystring.parse(urlWhioutQuestionMark)
     }
 
-    protected handlerRedictUriParamState(parsedredirectUri: querystring.ParsedUrlQuery): void {
-        const paramState = getRequiredParam('state', parsedredirectUri.state)
-        if (this.uniqueSessionTokenManager.valid(paramState)) return
-        throw new Error('The state param code is missing, or it has been altered')
+    protected evaluateStateParam(param: string) {
+        return this.#uniqueSessionTokenManager.valid(param)
+    }
+
+    protected getRequiredParam(id: string, parsedredirectUri: querystring.ParsedUrlQuery): void {
+        const param = getRequiredParam(id, parsedredirectUri.state)
+        if (param) return
+        throw new Error(`The ${id} param is missing, or it has been altered`)
     }
 }

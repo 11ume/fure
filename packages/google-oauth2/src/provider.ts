@@ -96,26 +96,33 @@ export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
 
 const provider = 'google'
 
+/**
+ * The base endpoints for handle authentication.
+ */
+const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
+
 export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider {
     readonly prompt: Prompt
     readonly accessType: AccessType
     readonly responseType: ResponseType
     constructor({
-        scope = ['openid', 'email', 'profile']
+        clientId
+        , clientSecret
+        , redirectUri
         , state = false
+        , scope = ['openid', 'email', 'profile']
+        , store
         , prompt = undefined
         , accessType = 'offline'
         , responseType = 'code'
-        , store
-        , oAuth2Client
-        , uniqueSessionTokenManager
     }: GoogleOAuth2ProviderOptions) {
-        super(provider, {
-            scope
+        super(provider, GOOGLE_AUTH_URL, {
+            clientId
+            , clientSecret
+            , redirectUri
             , state
+            , scope
             , store
-            , oAuth2Client
-            , uniqueSessionTokenManager
         })
         this.prompt = prompt
         this.accessType = accessType
