@@ -1,4 +1,5 @@
 import querystring from 'querystring'
+import { deleteEmptyParams } from './utils'
 // import fetch from 'node-fetch'
 
 interface OAuth2ClientOptions {
@@ -9,7 +10,7 @@ interface OAuth2ClientOptions {
 }
 
 export type GenerateAuthUrlOptions = {
-    [key: string]: any
+    [key: string]: string| string[] | boolean
 }
 
 export class OAuth2Client {
@@ -47,28 +48,22 @@ export class OAuth2Client {
         this.authenticationUrl = authenticationUrl
     }
 
-    private deleteEmptyParams<T>(params: T): Partial<T> {
-        return Object.entries(params).reduce((pv, [key, value]) => {
-            if (value) {
-                pv[key] = value
-            }
-            return pv
-        }, {})
-    }
-
-    generateAuthUrl(options: GenerateAuthUrlOptions): string {
+    private prepareAuthUrlParams(options: GenerateAuthUrlOptions): GenerateAuthUrlOptions {
         let scope = options.scope
         if (options.scope instanceof Array) {
             scope = options.scope.join(' ')
         }
 
-        const params = {
+        return {
             ...options
             , scope
             , client_id: this.clientId
         }
+    }
 
-        const cleanedParams = this.deleteEmptyParams(params)
+    generateAuthUrl(options: GenerateAuthUrlOptions): string {
+        const params = this.prepareAuthUrlParams(options)
+        const cleanedParams = deleteEmptyParams(params)
         const queryParams = querystring.stringify(cleanedParams)
         return `${this.authenticationUrl}?${queryParams}`
     }

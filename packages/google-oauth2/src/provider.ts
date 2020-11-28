@@ -138,7 +138,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const accessType = options.access_type ?? this.accessType
         const redirectUri = options.redirect_uri ?? this.oAuth2Client.redirectUri
         const responseType = options.response_type ?? this.responseType
-        const params: IGoogleGenerateAuthUrlOptions = {
+        const params = {
             scope
             , prompt
             , access_type: accessType
