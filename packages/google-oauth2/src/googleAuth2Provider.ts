@@ -8,6 +8,7 @@ import {
 } from 'fure-oauth2'
 
 type Prompt = 'none' | 'consent' | 'select_account'
+type ResponseType = 'code' | 'code token'
 type CodeChallengeMethod = 'plain' | 'S256'
 
 interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
@@ -90,16 +91,19 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
 export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
     readonly prompt?: Prompt
     readonly accessType?: AccessType
+    readonly responseType?: ResponseType
 }
 
 export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider {
     readonly prompt: Prompt
     readonly accessType: AccessType
+    readonly responseType: ResponseType
     constructor({
         scope = ['openid', 'email', 'profile']
         , state = false
-        , prompt = null
+        , prompt = undefined
         , accessType = 'offline'
+        , responseType = 'code'
         , store
         , oAuth2Client
         , uniqueSessionTokenManager
@@ -113,6 +117,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         })
         this.prompt = prompt
         this.accessType = accessType
+        this.responseType = responseType
     }
 
     private checkParamChallange(codeChallengeMethod: string, codeChallenge: string): void {
@@ -126,17 +131,22 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
      * @return URI to consent page.
      */
     generateAuthUrl(options: IGoogleGenerateAuthUrlOptions = {}): string {
+        const scope = options.scope ?? this.scope
+        const prompt = options.prompt ?? this.prompt
+        const accessType = options.access_type ?? this.accessType
         const redirectUri = options.redirect_uri ?? this.oAuth2Client.redirectUri
-        const responseType = options.response_type ?? 'code'
-        const params = {
-            scope: this.scope
-            , access_type: this.accessType
-            , redirect_uri: redirectUri
+        const responseType = options.response_type ?? this.responseType
+        const params: IGoogleGenerateAuthUrlOptions = {
+            scope
+            , prompt
+            , access_type: accessType
             , response_type: responseType
+            , redirect_uri: redirectUri
         }
 
+        const clearParams = this.deleteEmptyParams(params)
         this.checkParamChallange(options.code_challenge_method, options.code_challenge)
-        return this.oAuth2Client.generateAuthUrl(params)
+        return this.oAuth2Client.generateAuthUrl(clearParams)
     }
 
     /**

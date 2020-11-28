@@ -20,11 +20,12 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 // The base endpoint for get user information.
 // const GOOGLE_USER_INFO = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
-const createFureOAuth2GoogleProvider = ({
-    clientId
-    , clientSecret
-    , redirectUri
-}: Omit<CreateFureGoogleOAuthProOps, Omittables>) => {
+const createFureOAuth2GoogleProvider = (options: Omit<CreateFureGoogleOAuthProOps, Omittables>) => {
+    const {
+        clientId
+        , clientSecret
+        , redirectUri
+    } = options
     const oAuth2Client = new OAuth2Client({
         clientId
         , clientSecret
@@ -34,6 +35,7 @@ const createFureOAuth2GoogleProvider = ({
 
     return new FureGoogleOAuth2Provider({
         oAuth2Client
+        , ...options
     })
 }
 

@@ -13,30 +13,39 @@ test('generation of generic authentication URL', (t) => {
     })
 
     const url = googleAauth2.generateAuthUrl()
-    const urlParsed = new URL(url)
+    const { searchParams, origin, pathname } = new URL(url)
 
-    t.is(urlParsed.origin + urlParsed.pathname, googleAauth2.authenticationUrl)
-    t.is(urlParsed.searchParams.get('scope'), googleAauth2.scope.join(' '))
-    t.is(urlParsed.searchParams.get('client_id'), clientId)
-    t.is(urlParsed.searchParams.get('redirect_uri'), redirectUri)
-    t.is(urlParsed.searchParams.get('response_type'), 'code')
-    t.is(urlParsed.searchParams.get('access_type'), 'offline')
+    t.is(origin + pathname, googleAauth2.authenticationUrl)
+    t.is(searchParams.get('prompt'), null)
+    t.is(searchParams.get('response_type'), googleAauth2.responseType)
+    t.is(searchParams.get('access_type'), googleAauth2.accessType)
+    t.is(searchParams.get('scope'), googleAauth2.scope.join(' '))
+    t.is(searchParams.get('client_id'), clientId)
+    t.is(searchParams.get('redirect_uri'), redirectUri)
 })
 
-// test('generation of generic authentication URL, whit all supported parameters', (t) => {
-//     const responseType = 'code'
+// test('generation of generic authentication URL, pass optional parameters', (t) => {
 //     const googleAauth2 = fureOAuth2GoogleProvider({
 //         clientId
 //         , clientSecret
 //         , redirectUri
 //     })
 
-//     const url = googleAauth2.generateAuthUrl()
-//     const urlParsed = new URL(url)
+//     const options = {
+//         response_type: 'code token'
+//         , access_type: 'online'
+//     }
 
-//     t.is(urlParsed.origin + urlParsed.pathname, googleAauth2.authenticationUrl)
-//     t.is(urlParsed.searchParams.get('scope'), googleAauth2.scope.join(' '))
-//     t.is(urlParsed.searchParams.get('client_id'), clientId)
-//     t.is(urlParsed.searchParams.get('redirect_uri'), redirectUri)
-//     t.is(urlParsed.searchParams.get('response_type'), responseType)
+//     const url = googleAauth2.generateAuthUrl()
+//     const { searchParams, origin, pathname } = new URL(url)
+
+//     t.is(origin + pathname, googleAauth2.authenticationUrl)
+//     t.is(searchParams.get('response_type'), 'code')
+//     t.is(searchParams.get('access_type'), 'offline')
+//     t.is(searchParams.get('scope'), googleAauth2.scope.join(' '))
+//     t.is(searchParams.get('client_id'), clientId)
+//     t.is(searchParams.get('redirect_uri'), redirectUri)
+// })
+
+// test('generation of generic authentication URL, whit all supported parameters', (t) => {
 // })
