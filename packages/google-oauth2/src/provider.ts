@@ -136,7 +136,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const scope = options.scope ?? this.scope
         const prompt = options.prompt ?? this.prompt
         const accessType = options.access_type ?? this.accessType
-        const redirectUri = options.redirect_uri ?? this.oAuth2Client.redirectUri
+        const redirectUri = options.redirect_uri ?? this.redirectUri
         const responseType = options.response_type ?? this.responseType
         const params = {
             scope
@@ -147,7 +147,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
 
         this.checkParamChallange(options.code_challenge_method, options.code_challenge)
-        return this.oAuth2Client.generateAuthUrl(params)
+        return this.generateAuthenticationUrl(params)
     }
 
     /**

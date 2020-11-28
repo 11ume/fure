@@ -87,11 +87,6 @@ export class FureOAuth2Provider extends FureProvider {
      */
     protected readonly parsedRedirectUrl: URL
 
-    /**
-     * Authentication client for OAuth 2.0 protocol.
-     */
-    protected readonly oAuth2Client: OAuth2Client
-
     /*
      * An opaque string that is round-tripped in the protocol; that is to say, it is returned as a URI parameter in the Basic flow, and in the URI #fragment
      * identifier in the Implicit flow.
@@ -99,6 +94,12 @@ export class FureOAuth2Provider extends FureProvider {
      * Because your redirect_uri can be guessed, using a state value can increase your assurance that an incoming connection is the result of an authentication request initiated by your app. If you generate a random string or encode the hash of some client state (e.g., a cookie) in this state variable, you can validate the response to additionally ensure that the request and response originated in the same browser. This provides protection against attacks such as cross-site request forgery.
      **/
     protected readonly uniqueSessionTokenManager: IUniqueSessionTokenManager
+
+    /**
+     * Authentication client for OAuth 2.0 protocol.
+     */
+    readonly #oAuth2Client: OAuth2Client
+
     protected constructor(provider: string, {
         state
         , scope
@@ -110,9 +111,9 @@ export class FureOAuth2Provider extends FureProvider {
         this.state = state
         this.scope = scope
         this.store = store
-        this.oAuth2Client = oAuth2Client
+        this.#oAuth2Client = oAuth2Client
         this.uniqueSessionTokenManager = uniqueSessionTokenManager
-        this.parsedRedirectUrl = new URL(this.oAuth2Client.redirectUri)
+        this.parsedRedirectUrl = new URL(this.#oAuth2Client.redirectUri)
         this.state && this.checkStorage()
     }
 
@@ -120,7 +121,14 @@ export class FureOAuth2Provider extends FureProvider {
      * The base endpoints URL for handle authentication.
      */
     get authenticationUrl(): string {
-        return this.oAuth2Client.authenticationUrl
+        return this.#oAuth2Client.authenticationUrl
+    }
+
+    /**
+     *  The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
+     */
+    get redirectUri(): string {
+        return this.#oAuth2Client.redirectUri
     }
 
     private checkStorage(): void {
@@ -128,7 +136,15 @@ export class FureOAuth2Provider extends FureProvider {
         throw new Error('Invalid storage, a valid storage object method must be passed')
     }
 
-    protected queryStringParseRedirectUri(currentUrl: URL): querystring.ParsedUrlQuery {
+    /**
+     * Generate URI for consent page landing.
+     * @return URI to consent page.
+     */
+    protected generateAuthenticationUrl(options: GenerateAuthUrlOptions): string {
+        return this.#oAuth2Client.generateAuthenticationUrl(options)
+    }
+
+    protected redirectUriToObject(currentUrl: URL): querystring.ParsedUrlQuery {
         const urlWhioutQuestionMark = currentUrl.search.slice(1)
         return querystring.parse(urlWhioutQuestionMark)
     }

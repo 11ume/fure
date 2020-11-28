@@ -61,7 +61,11 @@ export class OAuth2Client {
         }
     }
 
-    generateAuthUrl(options: GenerateAuthUrlOptions): string {
+    /**
+     * Generate URI for consent page landing.
+     * @return URI to consent page.
+     */
+    generateAuthenticationUrl(options: GenerateAuthUrlOptions): string {
         const params = this.prepareAuthUrlParams(options)
         const cleanedParams = deleteEmptyParams(params)
         const queryParams = querystring.stringify(cleanedParams)
