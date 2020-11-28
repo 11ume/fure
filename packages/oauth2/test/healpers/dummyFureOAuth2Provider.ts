@@ -15,4 +15,11 @@ export class DummyFureOAuth2Provider extends FureOAuth2Provider {
     get storage() {
         return this.store
     }
+
+    /**
+     * Only used for access to protected property.
+     */
+    get sessionTokenManager() {
+        return this.uniqueSessionTokenManager
+    }
 }
