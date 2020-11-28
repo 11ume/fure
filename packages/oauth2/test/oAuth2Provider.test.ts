@@ -33,6 +33,7 @@ test('create an fure oAuth2 provider instance', (t) => {
     t.is(fureOAuth2Provider.redirectUri, redirectUri)
     t.is(fureOAuth2Provider.authenticationUrl, authenticationUrl)
     t.is(fureOAuth2Provider.sessionTokenManager, null)
+    t.is(fureOAuth2Provider.storage, null)
 })
 
 test('when state is "true" and store is "null"', (t) => {
