@@ -92,11 +92,6 @@ export class FureOAuth2Provider extends FureProvider {
     readonly scope: string[]
 
     /**
-     * The base endpoints URL for handle authentication.
-     */
-    readonly authenticationUrl: string
-
-    /**
      * Is a storage entity for store temporary values to be verify in different stages like the unique session token.
      */
     protected readonly store: IStorage
@@ -133,6 +128,13 @@ export class FureOAuth2Provider extends FureProvider {
         this.uniqueSessionTokenManager = uniqueSessionTokenManager
         this.parsedRedirectUrl = new URL(this.oAuth2Client.redirectUri)
         this.state && this.checkStorage()
+    }
+
+    /**
+     * The base endpoints URL for handle authentication.
+     */
+    get authenticationUrl(): string {
+        return this.oAuth2Client.authenticationUrl
     }
 
     private checkStorage(): void {
