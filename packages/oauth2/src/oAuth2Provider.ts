@@ -10,20 +10,6 @@ export type AccessType = 'offline' | 'online'
 
 export interface IGenerateAuthUrlOptions {
     /**
-     * @optional
-     * @recommended
-     * Indicates whether your application can refresh access tokens
-     * when the user is not present at the browser. Valid parameter values are
-     * 'online', which is the default value, and 'offline'. Set the value to
-     * 'offline' if your application needs to refresh access tokens when the user
-     * is not present at the browser. This value instructs the Google
-     * authorization server to return a refresh token and an access token the
-     * first time that your application exchanges an authorization code for
-     * tokens.
-     */
-    access_type?: AccessType
-
-    /**
      * @required
      * Determines whether the response data included when the redirect back to the app occurs is in URL parameters or fragments. See the Confirming Identity section to choose which type your app should use.
      * This can be one of:

@@ -12,6 +12,20 @@ type CodeChallengeMethod = 'plain' | 'S256'
 
 interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
     /**
+     * @optional
+     * @recommended
+     * Indicates whether your application can refresh access tokens
+     * when the user is not present at the browser. Valid parameter values are
+     * 'online', which is the default value, and 'offline'. Set the value to
+     * 'offline' if your application needs to refresh access tokens when the user
+     * is not present at the browser. This value instructs the Google
+     * authorization server to return a refresh token and an access token the
+     * first time that your application exchanges an authorization code for
+     * tokens.
+     */
+    access_type?: AccessType
+
+    /**
      * The hd (hosted domain) parameter streamlines the login process for G Suite
      * hosted accounts. By including the domain of the G Suite user (for example,
      * mycollege.edu), you can indicate that the account selection UI should be
@@ -116,6 +130,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const responseType = options.response_type ?? 'code'
         const params = {
             scope: this.scope
+            , access_type: this.accessType
             , redirect_uri: redirectUri
             , response_type: responseType
         }
