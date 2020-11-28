@@ -47,17 +47,30 @@ export class OAuth2Client {
         this.authenticationUrl = authenticationUrl
     }
 
+    private deleteEmptyParams<T>(params: T): Partial<T> {
+        return Object.entries(params).reduce((pv, [key, value]) => {
+            if (value) {
+                pv[key] = value
+            }
+            return pv
+        }, {})
+    }
+
     generateAuthUrl(options: GenerateAuthUrlOptions): string {
         let scope = options.scope
         if (options.scope instanceof Array) {
             scope = options.scope.join(' ')
         }
-        const params = querystring.stringify({
+
+        const params = {
             ...options
             , scope
             , client_id: this.clientId
-        })
-        return `${this.authenticationUrl}?${params}`
+        }
+
+        const cleanedParams = this.deleteEmptyParams(params)
+        const queryParams = querystring.stringify(cleanedParams)
+        return `${this.authenticationUrl}?${queryParams}`
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

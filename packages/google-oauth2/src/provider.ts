@@ -94,6 +94,8 @@ export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
     readonly responseType?: ResponseType
 }
 
+const provider = 'google'
+
 export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider {
     readonly prompt: Prompt
     readonly accessType: AccessType
@@ -108,7 +110,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , oAuth2Client
         , uniqueSessionTokenManager
     }: GoogleOAuth2ProviderOptions) {
-        super('google', {
+        super(provider, {
             scope
             , state
             , store
@@ -144,9 +146,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , redirect_uri: redirectUri
         }
 
-        const clearParams = this.deleteEmptyParams(params)
         this.checkParamChallange(options.code_challenge_method, options.code_challenge)
-        return this.oAuth2Client.generateAuthUrl(clearParams)
+        return this.oAuth2Client.generateAuthUrl(params)
     }
 
     /**

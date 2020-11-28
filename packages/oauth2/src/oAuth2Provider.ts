@@ -128,15 +128,6 @@ export class FureOAuth2Provider extends FureProvider {
         throw new Error('Invalid storage, a valid storage object method must be passed')
     }
 
-    protected deleteEmptyParams<T>(params: T): Partial<T> {
-        return Object.entries(params).reduce((pv, [key, value]) => {
-            if (value) {
-                pv[key] = value
-            }
-            return pv
-        }, {})
-    }
-
     protected queryStringParseRedirectUri(currentUrl: URL): querystring.ParsedUrlQuery {
         const urlWhioutQuestionMark = currentUrl.search.slice(1)
         return querystring.parse(urlWhioutQuestionMark)
