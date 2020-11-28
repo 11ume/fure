@@ -9,6 +9,7 @@ const clientSecret = 'abcd'
 const redirectUri = 'http://localhost:3000/auth/callback'
 const authenticationUrl = 'https://accounts.com/oauth2/auth'
 const scope = ['foo', 'bar']
+const provider = 'dummy provider'
 
 const createOAuth2Client = () => new OAuth2Client({
     clientId
@@ -19,7 +20,7 @@ const createOAuth2Client = () => new OAuth2Client({
 
 test('create an fure oAuth2 provider instance', (t) => {
     const oAuth2Client = createOAuth2Client()
-    const fureOAuth2Provider = new DummyFureOAuth2Provider('own provider', {
+    const fureOAuth2Provider = new DummyFureOAuth2Provider(provider, {
         state: false
         , scope
         , oAuth2Client
@@ -35,7 +36,7 @@ test('create an fure oAuth2 provider instance', (t) => {
 
 test('when state is "true" and store is "null"', (t) => {
     const oAuth2Client = createOAuth2Client()
-    const error = t.throws(() => new DummyFureOAuth2Provider('own provider', {
+    const error = t.throws(() => new DummyFureOAuth2Provider(provider, {
         state: true
         , scope
         , oAuth2Client
@@ -47,7 +48,7 @@ test('when state is "true" and store is "null"', (t) => {
 test('when state is "false" and a valid storage entity is passed', (t) => {
     const oAuth2Client = createOAuth2Client()
     const store = new DummyStore()
-    const error = t.throws(() => new DummyFureOAuth2Provider('own provider', {
+    const error = t.throws(() => new DummyFureOAuth2Provider(provider, {
         state: false
         , scope
         , store
@@ -64,7 +65,7 @@ test('check state when is "true" and a "invalid" storage "literal" entity is pas
         , remove: () => true
     }
 
-    const error = t.throws(() => new DummyFureOAuth2Provider('own provider', {
+    const error = t.throws(() => new DummyFureOAuth2Provider(provider, {
         state: true
         , scope
         , store
@@ -77,7 +78,7 @@ test('check state when is "true" and a "invalid" storage "literal" entity is pas
 test('when state is "true" and a valid storage entity is passed', (t) => {
     const oAuth2Client = createOAuth2Client()
     const store = new DummyStore()
-    const fureOAuth2Provider = new DummyFureOAuth2Provider('own provider', {
+    const fureOAuth2Provider = new DummyFureOAuth2Provider(provider, {
         state: true
         , scope
         , store
@@ -98,7 +99,27 @@ test('when state is "true" and a "valid" storage "literal" entity is passed', (t
         , remove: () => true
     }
 
-    const fureOAuth2Provider = () => new DummyFureOAuth2Provider('own provider', {
+    const fureOAuth2Provider = () => new DummyFureOAuth2Provider(provider, {
+        state: true
+        , scope
+        , store
+        , oAuth2Client
+    })
+
+    t.notThrows(fureOAuth2Provider)
+})
+
+test('when state is "true" and a "valid" storage "literal" entity is passed', (t) => {
+    const oAuth2Client = createOAuth2Client()
+    const store: IStorage = {
+        add: () => undefined
+        , get: () => ({
+            value: 'foo'
+        })
+        , remove: () => true
+    }
+
+    const fureOAuth2Provider = () => new DummyFureOAuth2Provider(provider, {
         state: true
         , scope
         , store
