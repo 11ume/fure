@@ -117,9 +117,7 @@ export class FureOAuth2Provider extends FureProvider {
         this.checkState()
         this.checkStorage()
         // this.#parsedRedirectUrl = new URL(this.#oAuth2Client.redirectUri)
-        if (this.#store && this.state) {
-            this.#uniqueSessionTokenManager = new UniqueSessionTokenManager(this.#store, this.state)
-        }
+        this.#uniqueSessionTokenManager = new UniqueSessionTokenManager(this.#store, this.state)
         this.#oAuth2Client = new OAuth2Client({
             clientId
             , clientSecret
