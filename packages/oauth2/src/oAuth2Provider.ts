@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import querystring from 'querystring'
 import { FureProvider } from 'fure-provider'
 import { IStorage, isStore } from 'fure-storage'
