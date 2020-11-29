@@ -18,7 +18,7 @@ export interface IGenerateAuthUrlOptions {
      * @value token - Response data is included as a URL fragment and contains an access token. Desktop apps must use this setting for response_type. This is most
      * useful when the client will be handling the token.
      */
-    response_type?: string
+    responseType?: string
 
     /**
      * @required
@@ -28,7 +28,7 @@ export interface IGenerateAuthUrlOptions {
      * the http or https scheme, case, and trailing slash ('/') must all match.
      * The value passed into the constructor will be used if not provided.
      */
-    redirect_uri?: string
+    redirectUri?: string
 
     /**
      * @required
