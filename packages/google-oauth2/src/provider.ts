@@ -90,10 +90,14 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
 
 export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
     readonly prompt?: Prompt
+    readonly loginHint?: string
     readonly accessType?: AccessType
     readonly responseType?: ResponseType
 }
 
+/**
+ * Authentication provider entity.
+ */
 const provider = 'google'
 
 /**
@@ -103,8 +107,10 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 
 export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider {
     readonly prompt: Prompt
+    readonly loginHint: string
     readonly accessType: AccessType
     readonly responseType: ResponseType
+
     constructor({
         clientId
         , clientSecret
@@ -113,6 +119,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , scope = ['openid', 'email', 'profile']
         , store
         , prompt = undefined
+        , loginHint = undefined
         , accessType = 'offline'
         , responseType = 'code'
     }: GoogleOAuth2ProviderOptions) {
@@ -125,6 +132,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , store
         })
         this.prompt = prompt
+        this.loginHint = loginHint
         this.accessType = accessType
         this.responseType = responseType
     }
@@ -140,17 +148,30 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
      * @return URI to consent page.
      */
     generateAuthUrl(options: IGoogleGenerateAuthUrlOptions = {}): string {
+        const hd = options.hd
         const scope = options.scope ?? this.scope
         const prompt = options.prompt ?? this.prompt
+        const clientId = this.clientId
+        const loginHint = options.login_hint ?? this.loginHint
         const accessType = options.access_type ?? this.accessType
         const redirectUri = options.redirect_uri ?? this.redirectUri
         const responseType = options.response_type ?? this.responseType
+        const codeChallenge = options.code_challenge
+        const codeChallengeMethod = options.code_challenge_method
+        const includeGrantedScopes = options.include_granted_scopes
+
         const params = {
-            scope
+            hd
+            , scope
             , prompt
+            , client_id: clientId
+            , login_hint: loginHint
             , access_type: accessType
-            , response_type: responseType
             , redirect_uri: redirectUri
+            , response_type: responseType
+            , code_challenge: codeChallenge
+            , code_challenge_method: codeChallengeMethod
+            , include_granted_scopes: includeGrantedScopes
         }
 
         this.checkParamChallange(options.code_challenge_method, options.code_challenge)

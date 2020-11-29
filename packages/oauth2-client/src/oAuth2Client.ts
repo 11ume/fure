@@ -10,7 +10,7 @@ interface OAuth2ClientOptions {
 }
 
 export type GenerateAuthUrlOptions = {
-    [key: string]: string| string[] | boolean
+    [key: string]: string | string[] | boolean
 }
 
 export class OAuth2Client {
@@ -57,7 +57,6 @@ export class OAuth2Client {
         return {
             ...options
             , scope
-            , client_id: this.clientId
         }
     }
 
