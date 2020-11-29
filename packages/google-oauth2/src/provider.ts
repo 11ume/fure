@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import {
     IFureOAuth2Provider
     , IGenerateAuthUrlOptions
@@ -24,7 +23,7 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
      * first time that your application exchanges an authorization code for
      * tokens.
      */
-    access_type?: AccessType
+    accessType?: AccessType
 
     /**
      * The hd (hosted domain) parameter streamlines the login process for G Suite
@@ -47,7 +46,7 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
      * will also cover any scopes to which the user previously granted the
      * application access. See the incremental authorization section for examples.
      */
-    include_granted_scopes?: boolean
+    includeGrantedScopes?: boolean
 
     /**
      * Optional. If your application knows which user is trying to authenticate,
@@ -57,7 +56,7 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
      * appropriate multi-login session. Set the parameter value to an email
      * address or sub identifier, which is equivalent to the user's Google ID.
      */
-    login_hint?: string
+    loginHint?: string
 
     /**
      * Optional. A space-delimited, case-sensitive list of prompts to present the
@@ -78,19 +77,18 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
      * that includes a 'code_challenge'. The only supported values for this
      * parameter are "S256" or "plain".
      */
-    code_challenge_method?: CodeChallengeMethod
+    codeChallengeMethod?: CodeChallengeMethod
 
     /**
      * Recommended. Specifies an encoded 'code_verifier' that will be used as a
      * server-side challenge during authorization code exchange. This parameter
      * must be used with the 'code_challenge' parameter described above.
      */
-    code_challenge?: string
+    codeChallenge?: string
 }
 
 export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
     readonly prompt?: Prompt
-    readonly loginHint?: string
     readonly accessType?: AccessType
     readonly responseType?: ResponseType
 }
@@ -107,7 +105,6 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 
 export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider {
     readonly prompt: Prompt
-    readonly loginHint: string
     readonly accessType: AccessType
     readonly responseType: ResponseType
 
@@ -119,7 +116,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , scope = ['openid', 'email', 'profile']
         , store
         , prompt = undefined
-        , loginHint = undefined
         , accessType = 'offline'
         , responseType = 'code'
     }: GoogleOAuth2ProviderOptions) {
@@ -132,7 +128,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , store
         })
         this.prompt = prompt
-        this.loginHint = loginHint
         this.accessType = accessType
         this.responseType = responseType
     }
@@ -145,20 +140,27 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
 
     /**
      * Generate URI for consent page landing.
-     * @return URI to consent page.
+     * The next properties have piorty hover that defined in the constructor:
+     * @property scope
+     * @property prompt
+     * @property accessType
+     * @property redirectUri
+     * @property responseType
+    *  @returns URI to consent page.
      */
     generateAuthUrl(options: IGoogleGenerateAuthUrlOptions = {}): string {
         const hd = options.hd
+        const clientId = this.clientId
+        const loginHint = options.loginHint
+        const codeChallenge = options.codeChallenge
+        const codeChallengeMethod = options.codeChallengeMethod
+        const includeGrantedScopes = options.includeGrantedScopes
+
         const scope = options.scope ?? this.scope
         const prompt = options.prompt ?? this.prompt
-        const clientId = this.clientId
-        const loginHint = options.login_hint ?? this.loginHint
-        const accessType = options.access_type ?? this.accessType
-        const redirectUri = options.redirect_uri ?? this.redirectUri
-        const responseType = options.response_type ?? this.responseType
-        const codeChallenge = options.code_challenge
-        const codeChallengeMethod = options.code_challenge_method
-        const includeGrantedScopes = options.include_granted_scopes
+        const accessType = options.accessType ?? this.accessType
+        const redirectUri = options.redirectUri ?? this.redirectUri
+        const responseType = options.responseType ?? this.responseType
 
         const params = {
             hd
@@ -174,7 +176,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , include_granted_scopes: includeGrantedScopes
         }
 
-        this.checkParamChallange(options.code_challenge_method, options.code_challenge)
+        this.checkParamChallange(options.codeChallengeMethod, options.codeChallenge)
         return this.generateAuthenticationUrl(params)
     }
 
