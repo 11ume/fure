@@ -139,7 +139,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , codeChallengeMethod = 'S256'
         , includeGrantedScopes = false
     }: GoogleOAuth2ProviderOptions) {
-        super(provider, GOOGLE_AUTH_URL, {
+        super(provider, GOOGLE_AUTH_URL, GOOGLE_TOKEN_URL, {
             clientId
             , clientSecret
             , redirectUri
@@ -201,10 +201,15 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
      * then a request is made with part of the parameters extracted from the returned URI.
      * @return user information, this can varies depending of the "scope" parameter.
      */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    callbackHandler() {
-
+    callbackHandler(url: string) {
+        const currentUrl = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${url}`)
+        const callbackUrlQueryObj = this.callbackUrlQueryToObject(currentUrl)
+        const paramCode = this.getRequiredParam('code', callbackUrlQueryObj)
+        return this.getToken({
+            code: paramCode
+        })
     }
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     revokeToken() { }
 }

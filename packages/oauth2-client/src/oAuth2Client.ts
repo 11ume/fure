@@ -1,6 +1,7 @@
 import querystring from 'querystring'
 import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch'
 import { deleteEmptyValues } from './utils'
+import { Credentials } from './credentials'
 
 interface OAuth2ClientOptions {
     readonly clientId: string
@@ -10,14 +11,18 @@ interface OAuth2ClientOptions {
     readonly tokenUrl: string
 }
 
+type GetTokenResponse = {
+    tokens: Credentials
+}
+
 export type GenerateAuthUrlOptions = {
     [key: string]: string | string[] | boolean
 }
 
-type GetTokenOptions = {
+export type GetTokenOptions = {
     code: string
-    clientId: string
-    redirectUri: string
+    clientId?: string
+    redirectUri?: string
     codeVerifier?: string
 }
 
@@ -36,14 +41,14 @@ export class OAuth2Client {
     readonly clientSecret: string
 
     /**
+     * URL used for create an authorization token.
+     */
+    readonly tokenUrl: string
+
+    /**
      * The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
      */
     readonly redirectUri: string
-
-    /**
-    * URL used for create an authorization token.
-    */
-    readonly tokenUrl: string
 
     /**
      * URL used for create an authorization request link.
@@ -103,8 +108,8 @@ export class OAuth2Client {
         code
         , clientId
         , redirectUri
-        , codeVerifier = null
-    }: GetTokenOptions) {
+        , codeVerifier = undefined
+    }: GetTokenOptions): Promise<GetTokenResponse> {
         const values = {
             code
             , client_secret: this.clientSecret
@@ -123,6 +128,6 @@ export class OAuth2Client {
             }
         })
 
-        return res
+        return res.json()
     }
 }

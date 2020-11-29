@@ -3,7 +3,7 @@ import { FureProvider } from 'fure-provider'
 import { IStorage, isStore } from 'fure-storage'
 import { getRequiredParam } from 'fure-shared'
 import { UniqueSessionTokenManager, IUniqueSessionTokenManager } from 'fure-ustm'
-import { OAuth2Client, GenerateAuthUrlOptions } from 'fure-oauth2-client'
+import { OAuth2Client, GenerateAuthUrlOptions, GetTokenOptions } from 'fure-oauth2-client'
 
 export type AccessType = 'offline' | 'online'
 
@@ -51,7 +51,7 @@ export interface IGenerateAuthUrlOptions {
 
 export interface IFureOAuth2Provider {
     generateAuthUrl(options: GenerateAuthUrlOptions): string
-    callbackHandler(): any
+    callbackHandler(url: string): any
     revokeToken(): any
 }
 
@@ -83,11 +83,6 @@ export class FureOAuth2Provider extends FureProvider {
      */
     readonly #store: IStorage
 
-    /**
-     * Parsed URI, used to redirect the client after authentication is complete.
-     */
-    // readonly #parsedRedirectUrl: URL
-
     /*
      * An opaque string that is round-tripped in the protocol; that is to say, it is returned as a URI parameter in the Basic flow, and in the URI #fragment
      * identifier in the Implicit flow.
@@ -100,6 +95,11 @@ export class FureOAuth2Provider extends FureProvider {
      * Authentication client for OAuth 2.0 protocol.
      */
     readonly #oAuth2Client: OAuth2Client
+
+    /**
+     * Parsed URI, used to redirect the client after authentication is complete.
+     */
+    protected readonly parsedRedirectUrl: URL
 
     protected constructor(provider: string, authenticationUrl: string, tokenUrl: string, {
         clientId
@@ -115,7 +115,7 @@ export class FureOAuth2Provider extends FureProvider {
         this.#store = store
         this.checkState()
         this.checkStorage()
-        // this.#parsedRedirectUrl = new URL(this.#oAuth2Client.redirectUri)
+        this.parsedRedirectUrl = new URL(this.#oAuth2Client.redirectUri)
         this.#uniqueSessionTokenManager = new UniqueSessionTokenManager(this.#store, this.state)
         this.#oAuth2Client = new OAuth2Client({
             clientId
@@ -186,7 +186,7 @@ export class FureOAuth2Provider extends FureProvider {
         return this.#oAuth2Client.generateAuthenticationUrl(options)
     }
 
-    protected redirectUriToObject(currentUrl: URL): querystring.ParsedUrlQuery {
+    protected callbackUrlQueryToObject(currentUrl: URL): querystring.ParsedUrlQuery {
         const urlWhioutQuestionMark = currentUrl.search.slice(1)
         return querystring.parse(urlWhioutQuestionMark)
     }
@@ -195,9 +195,14 @@ export class FureOAuth2Provider extends FureProvider {
         return this.#uniqueSessionTokenManager.valid(param)
     }
 
-    protected getRequiredParam(id: string, parsedredirectUri: querystring.ParsedUrlQuery): void {
+    protected getRequiredParam(id: string, parsedredirectUri: querystring.ParsedUrlQuery): string {
         const param = getRequiredParam(id, parsedredirectUri.state)
-        if (param) return
+        if (param) return param
         throw new Error(`The ${id} param is missing, or it has been altered`)
+    }
+
+    protected async getToken(options: GetTokenOptions) {
+        const res = this.#oAuth2Client.getToken(options)
+        return res
     }
 }
