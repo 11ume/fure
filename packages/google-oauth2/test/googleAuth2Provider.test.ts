@@ -33,26 +33,26 @@ test('create generic authentication URL whit uncommon params', (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider()
 
     const hd = '*'
-    const include_granted_scopes = true
-    const login_hint = 'asd@asd.com'
-    const code_challenge = 'abcd'
-    const code_challenge_method = 'plain'
+    const includeGrantedScopes = true
+    const loginHint = 'asd@asd.com'
+    const codeChallenge = 'abcd'
+    const codeChallengeMethod = 'plain'
 
     const url = googleAauth2.generateAuthUrl({
         hd
-        , loginHint: login_hint
-        , codeChallenge: code_challenge
-        , codeChallengeMethod: code_challenge_method
-        , includeGrantedScopes: include_granted_scopes
+        , loginHint
+        , codeChallenge
+        , codeChallengeMethod
+        , includeGrantedScopes
     })
     const { searchParams, origin, pathname } = new URL(url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
     t.is(searchParams.get('hd'), hd)
     t.is(searchParams.get('include_granted_scopes'), 'true')
-    t.is(searchParams.get('login_hint'), login_hint)
-    t.is(searchParams.get('code_challenge'), code_challenge)
-    t.is(searchParams.get('code_challenge_method'), code_challenge_method)
+    t.is(searchParams.get('login_hint'), loginHint)
+    t.is(searchParams.get('code_challenge'), codeChallenge)
+    t.is(searchParams.get('code_challenge_method'), codeChallengeMethod)
 })
 
 test('create generic authentication URL piorice params passed in the method', (t) => {
