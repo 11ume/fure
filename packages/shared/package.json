@@ -16,8 +16,7 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
-    "camelcase": "6.2.0",
-    "fure-storage": "1.0.0-alpha.0"
+    "camelcase": "6.2.0"
   },
   "devDependencies": {
     "@types/node": "^14.14.10",

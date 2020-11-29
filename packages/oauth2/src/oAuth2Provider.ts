@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
 import querystring from 'querystring'
 import { FureProvider } from 'fure-provider'
-import { IStorage } from 'fure-storage'
-import { getRequiredParam, isStore } from 'fure-shared'
+import { IStorage, isStore } from 'fure-storage'
+import { getRequiredParam } from 'fure-shared'
 import { UniqueSessionTokenManager, IUniqueSessionTokenManager } from 'fure-ustm'
 import { OAuth2Client, GenerateAuthUrlOptions } from 'fure-oauth2-client'
 
@@ -82,7 +82,7 @@ export class FureOAuth2Provider extends FureProvider {
      * Is a storage entity, for store and compare temporal values in different stages,
      * like the unique session token value.
      */
-    protected readonly store: IStorage
+    readonly #store: IStorage
 
     /**
      * Parsed URI, used to redirect the client after authentication is complete.
@@ -113,12 +113,12 @@ export class FureOAuth2Provider extends FureProvider {
         super(provider)
         this.state = state
         this.scope = scope
-        this.store = store
+        this.#store = store
         this.checkState()
         this.checkStorage()
         // this.#parsedRedirectUrl = new URL(this.#oAuth2Client.redirectUri)
-        if (this.store && this.state) {
-            this.#uniqueSessionTokenManager = new UniqueSessionTokenManager(this.store, this.state)
+        if (this.#store && this.state) {
+            this.#uniqueSessionTokenManager = new UniqueSessionTokenManager(this.#store, this.state)
         }
         this.#oAuth2Client = new OAuth2Client({
             clientId
@@ -126,10 +126,6 @@ export class FureOAuth2Provider extends FureProvider {
             , redirectUri
             , authenticationUrl
         })
-    }
-
-    get uniqueSessionTokenManager() {
-        return this.#uniqueSessionTokenManager
     }
 
     /**
@@ -165,7 +161,7 @@ export class FureOAuth2Provider extends FureProvider {
      * If state property state is false, store property should not be provided.
      */
     private checkState(): void {
-        if (this.state === false && this.store !== null) {
+        if (this.state === false && this.#store !== null) {
             throw new Error('If you pass a Storage entity, the state parameter must be true')
         }
     }
@@ -176,10 +172,10 @@ export class FureOAuth2Provider extends FureProvider {
      */
     private checkStorage(): void {
         if (this.state) {
-            if (this.store === null) {
+            if (this.#store === null) {
                 throw new Error('If the state parameter is true, you must pass a valid storage entity')
             }
-            if (isStore(this.store)) return
+            if (isStore(this.#store)) return
             throw new Error('Invalid storage, a valid storage object method must be provided')
         }
     }
