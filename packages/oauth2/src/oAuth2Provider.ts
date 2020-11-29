@@ -101,7 +101,7 @@ export class FureOAuth2Provider extends FureProvider {
      */
     readonly #oAuth2Client: OAuth2Client
 
-    protected constructor(provider: string, authenticationUrl: string, {
+    protected constructor(provider: string, authenticationUrl: string, tokenUrl: string, {
         clientId
         , clientSecret
         , redirectUri
@@ -121,6 +121,7 @@ export class FureOAuth2Provider extends FureProvider {
             clientId
             , clientSecret
             , redirectUri
+            , tokenUrl
             , authenticationUrl
         })
     }

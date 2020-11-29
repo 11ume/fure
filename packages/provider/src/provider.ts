@@ -1,4 +1,3 @@
-import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch'
 import { createError } from './error'
 
 export class FureProvider {
@@ -10,10 +9,12 @@ export class FureProvider {
         this.provider = provider
     }
 
-    fetch(url: RequestInfo, init?: RequestInit): Promise<Response> {
-        return fetch(url, init)
-    }
-
+    /**
+     * Common error handler.
+     * @param status http status code
+     * @param message message of the error
+     * @param error original error
+     **/
     error(status: number, message?: string, error?: Error) {
         return createError(status, message, error)
     }

@@ -106,14 +106,19 @@ export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
 }
 
 /**
+ * Base endpoint for token retrieval.
+ */
+const GOOGLE_TOKEN_URL = 'https://www.googleapis.com/oauth2/v4/token'
+
+/**
+ * Base endpoints for handle authentication.
+ */
+const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
+
+/**
  * Authentication provider entity.
  */
 const provider = 'google'
-
-/**
- * The base endpoints for handle authentication.
- */
-const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 
 export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider {
     readonly prompt: Prompt
@@ -197,7 +202,9 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
      * @return user information, this can varies depending of the "scope" parameter.
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    callbackHandler() { }
+    callbackHandler() {
+
+    }
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     revokeToken() { }
 }
