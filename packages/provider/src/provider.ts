@@ -14,7 +14,7 @@ export class FureProvider {
         return fetch(url, init)
     }
 
-    panic(status: number, message?: string, error?: Error) {
+    error(status: number, message?: string, error?: Error) {
         return createError(status, message, error)
     }
 }

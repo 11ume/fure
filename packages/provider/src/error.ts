@@ -1,15 +1,16 @@
 export class InteralError extends Error {
     constructor(
-        public readonly message: string
-        , public readonly statusCode?: number
-        , public readonly originalError?: Error) {
+        readonly message: string
+        , readonly statusCode?: number
+        , readonly originalError?: Error) {
         super(message)
     }
 }
 
-export const createError = (status: number, message?: string, error?: Error) => {
-    if (status > 511 || status < 100) {
-        throw new Error(`Invalid status code ${status}`)
+export const createError = (code: number, message?: string, error?: Error) => {
+    const cod = code ?? 500
+    if (code > 511 || code < 100) {
+        throw new Error(`Invalid status code ${code}`)
     }
-    return new InteralError(message, status, error)
+    return new InteralError(message, cod, error)
 }
