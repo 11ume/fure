@@ -133,24 +133,21 @@ export class FureOAuth2Provider extends FureProvider {
     }
 
     /**
-     * Your application ID.
+     * Application ID.
      */
     get clientId() {
         return this.#oAuth2Client.clientId
     }
 
     /**
-     * Your unique app secret.
-     * This app secret should never be included in client-side code or in binaries that
-     * could be decompiled. It is extremely important that it remains completely secret
-     * as it is the core of the security of your app and all the people using it.
+     * Application unique secret key.
      */
     get clientSecret() {
         return this.#oAuth2Client.clientSecret
     }
 
     /**
-     *  The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
+     * The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
      */
     get redirectUri() {
         return this.#oAuth2Client.redirectUri
@@ -164,8 +161,8 @@ export class FureOAuth2Provider extends FureProvider {
     }
 
     /**
-     *  Check state property constraints.
-     *  If state property state is false, store property should not be provided.
+     * Check state property constraints.
+     * If state property state is false, store property should not be provided.
      */
     private checkState(): void {
         if (this.state === false && this.store !== null) {
@@ -174,8 +171,8 @@ export class FureOAuth2Provider extends FureProvider {
     }
 
     /**
-     *  Check store property constraints.
-     *  If state property is true, an Storage object that implements the IStorage interface must be provided.
+     * Check store property constraints.
+     * If state property is true, an Storage object that implements the IStorage interface must be provided.
      */
     private checkStorage(): void {
         if (this.state) {

@@ -15,20 +15,20 @@ export type GenerateAuthUrlOptions = {
 
 export class OAuth2Client {
     /**
-     * Your application ID.
+     * Application ID.
      */
     readonly clientId: string
 
     /**
-     * Your unique app secret.
-     * This app secret should never be included in client-side code or in binaries that
+     * Application unique secret key.
+     * This application secret key should never be included in client-side code or in binaries that
      * could be decompiled. It is extremely important that it remains completely secret
      * as it is the core of the security of your app and all the people using it.
      */
     readonly clientSecret: string
 
     /**
-     *  The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
+     * The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
      */
     readonly redirectUri: string
 
