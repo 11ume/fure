@@ -49,7 +49,7 @@ test('create generic authentication URL whit uncommon params', (t) => {
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
     t.is(searchParams.get('hd'), hd)
-    t.is(searchParams.get('include_granted_scopes'), 'true')
+    t.is(searchParams.get('include_granted_scopes'), String(includeGrantedScopes))
     t.is(searchParams.get('login_hint'), loginHint)
     t.is(searchParams.get('code_challenge'), codeChallenge)
     t.is(searchParams.get('code_challenge_method'), codeChallengeMethod)
@@ -62,6 +62,8 @@ test('create generic authentication URL piorice params passed in the method', (t
         , responseType: 'code'
         , redirectUri: 'http://localhost:4000/callback'
         , scope: ['openid', 'email']
+        , codeChallengeMethod: 'S256'
+        , includeGrantedScopes: true
     })
 
     const prompt = 'none'
@@ -69,6 +71,9 @@ test('create generic authentication URL piorice params passed in the method', (t
     const redirectUri = 'http://localhost:3000/callback'
     const responseType = 'code'
     const scope = ['foo', 'bar']
+    const codeChallengeMethod = 'plain'
+    const codeChallenge = 'foobar'
+    const includeGrantedScopes = false
 
     const url = googleAauth2.generateAuthUrl({
         prompt
@@ -76,6 +81,9 @@ test('create generic authentication URL piorice params passed in the method', (t
         , accessType
         , redirectUri
         , responseType
+        , codeChallenge
+        , codeChallengeMethod
+        , includeGrantedScopes
     })
 
     const { searchParams, origin, pathname } = new URL(url)
@@ -85,6 +93,8 @@ test('create generic authentication URL piorice params passed in the method', (t
     t.is(searchParams.get('access_type'), accessType)
     t.is(searchParams.get('redirect_uri'), redirectUri)
     t.is(searchParams.get('response_type'), responseType)
+    t.is(searchParams.get('include_granted_scopes'), String(includeGrantedScopes))
+    t.is(searchParams.get('code_challenge_method'), codeChallengeMethod)
     t.is(searchParams.get('scope'), scope.join(' '))
 })
 
