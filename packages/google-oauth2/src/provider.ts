@@ -106,6 +106,11 @@ export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
 }
 
 /**
+ * Authentication provider.
+ */
+const PROVIDER = 'google'
+
+/**
  * Base endpoint for token retrieval.
  */
 const GOOGLE_TOKEN_URL = 'https://www.googleapis.com/oauth2/v4/token'
@@ -114,11 +119,6 @@ const GOOGLE_TOKEN_URL = 'https://www.googleapis.com/oauth2/v4/token'
  * Base endpoints for handle authentication.
  */
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
-
-/**
- * Authentication provider entity.
- */
-const provider = 'google'
 
 export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider {
     readonly prompt: Prompt
@@ -139,7 +139,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , codeChallengeMethod = 'S256'
         , includeGrantedScopes = false
     }: GoogleOAuth2ProviderOptions) {
-        super(provider, GOOGLE_AUTH_URL, GOOGLE_TOKEN_URL, {
+        super(PROVIDER, GOOGLE_AUTH_URL, GOOGLE_TOKEN_URL, {
             clientId
             , clientSecret
             , redirectUri
@@ -161,8 +161,12 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
     }
 
-    private getTokenOnAuthenticate(url: string) {
-        const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${url}`)
+    /**
+     * Gets the access token for the given code in the current url.
+     * @param currentUrl Is current request url, is usually obtained through the property url of Request object.
+     */
+    private getTokenOnAuthenticate(currentUrl: string) {
+        const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
         const code = this.getRequiredParam('code', callbackUrlQueryObj)
         return this.getToken({
@@ -207,12 +211,13 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     }
 
     /**
-    * Method used for parse the returned URI after an succes authentication in the consent page,
-    * then a request is made with part of the parameters extracted from the returned URI.
-    * @return user information, this can varies depending of the "scope" parameter.
+    * Method used for parse the returned URL after an succes authentication in the consent page,
+    * then a request is made with part of the parameters extracted from that URL.
+    * @param currentUrl Is current request url, is usually obtained through the property url of Request object.
+    * @return Authentication credentials and authenticated user information, this can varies depending of the "scope" parameter.
     */
-    authenticate(url: string) {
-        return this.getTokenOnAuthenticate(url)
+    authenticate(currentUrl: string) {
+        return this.getTokenOnAuthenticate(currentUrl)
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

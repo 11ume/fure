@@ -201,6 +201,9 @@ export class FureOAuth2Provider extends FureProvider {
         throw new Error(`The ${id} param is missing, or it has been altered`)
     }
 
+    /**
+     * Gets the access token for the given code.
+     */
     protected async getToken(options: GetTokenOptions) {
         return this.#oAuth2Client.getToken(options)
     }

@@ -90,7 +90,7 @@ export class OAuth2Client {
         }
     }
 
-    private async handlerGetTokenResponse(res: Response): Promise<GetTokenResponse> {
+    private async handleGetTokenResponse(res: Response): Promise<GetTokenResponse> {
         try {
             const body: AuthTokenResponse = await res.json()
             if (res.ok) {
@@ -106,7 +106,7 @@ export class OAuth2Client {
                 , credentials: null
             }
         } catch (err) {
-            const error = createError(500, 'Invalid JSON parse', 'JSON object expected', err)
+            const error = createError(500, 'Invalid JSON', 'A valid JSON type was expected', err)
             return {
                 error
                 , credentials: null
@@ -114,11 +114,12 @@ export class OAuth2Client {
         }
     }
 
-    private handleGetTokenRequest(values: TokenRequestValues): Promise<Response> {
+    private makeGetTokenRequest(values: TokenRequestValues): Promise<Response> {
         const cleanedValues = deleteEmptyValues(values)
+        const body = querystring.stringify(cleanedValues)
         return this.#fetch(this.tokenUrl, {
-            method: 'POST'
-            , body: querystring.stringify(cleanedValues)
+            body
+            , method: 'POST'
             , headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
@@ -142,15 +143,15 @@ export class OAuth2Client {
         const grantType = 'authorization_code'
         const values = {
             code
-            , client_secret: this.clientSecret
+            , grant_type: grantType
             , code_verifier: codeVerifier
+            , client_secret: this.clientSecret
             , client_id: clientId ?? this.clientId
             , redirect_uri: redirectUri ?? this.redirectUri
-            , grant_type: grantType
         }
 
-        const res = await this.handleGetTokenRequest(values)
-        return this.handlerGetTokenResponse(res)
+        const res = await this.makeGetTokenRequest(values)
+        return this.handleGetTokenResponse(res)
     }
 
     /**
