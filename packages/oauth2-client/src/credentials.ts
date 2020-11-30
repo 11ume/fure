@@ -1,10 +1,34 @@
 /* eslint-disable camelcase */
+
 export interface TokenRequestValues {
+  /**
+   * He authorization code returned from the initial request
+   */
   code: string
-  client_secret: string
-  code_verifier: string
+
+  /**
+  * Application ID.
+  */
   client_id: string
+
+  /**
+   * Application unique secret key.
+   */
+  client_secret: string
+
+  /**
+   * Is a high-entropy cryptographic random string using the unreserved characters.
+   */
+  code_verifier: string
+
+  /**
+   * One of the redirect URIs listed for your project for the given client_id.
+   */
   redirect_uri: string
+
+  /**
+   * As defined in the OAuth 2.0 specification, this field's value must be set to authorization_code.
+   */
   grant_type: string
 }
 
@@ -42,7 +66,14 @@ export interface TokenCredentials {
 }
 
 export interface TokenCredentialsError {
+  /**
+   * Error message.
+   */
   error: string
+
+  /**
+   * Error description message.
+   */
   error_description: string
 }
 

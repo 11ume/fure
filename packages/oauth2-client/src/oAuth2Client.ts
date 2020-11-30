@@ -137,7 +137,7 @@ export class OAuth2Client {
      * @param {string} GetTokenOptions.code Authorization code.
      * @param {string} GetTokenOptions.clientId Application ID.
      * @param {string} GetTokenOptions.redirectUri The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
-     * @param {string} GetTokenOptions.codeVerifier Is a high-entropy cryptographic random string using the unreserved characters .
+     * @param {string} GetTokenOptions.codeVerifier Is a high-entropy cryptographic random string using the unreserved characters.
      */
     async getTokens({
         code
