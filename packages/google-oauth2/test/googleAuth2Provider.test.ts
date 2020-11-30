@@ -1,7 +1,10 @@
-/* eslint-disable camelcase */
 import test from 'ava'
-import fureOAuth2GoogleProvider from '..'
-import { GoogleOAuth2ProviderOptions } from '../src/provider'
+import nock from 'nock'
+import fureOAuth2GoogleProvider, { GoogleOAuth2ProviderOptions } from '..'
+import { FureError } from 'fure-provider/src/error'
+import { createStorage } from 'fure-storage'
+
+const baseUrl = 'https://www.googleapis.com/oauth2/v4'
 
 const createFureOAuth2GoogleProvider = (options?: Omit<GoogleOAuth2ProviderOptions, 'clientId' | 'clientSecret'>) => {
     const clientId = '1234'
@@ -98,8 +101,79 @@ test('create generic authentication URL piorice params passed in the method', (t
     t.is(searchParams.get('scope'), scope.join(' '))
 })
 
-// test('generation of generic authentication URL, pass optional parameters', (t) => {
-// })
+test('create generic authentication URL whit state enabled', (t) => {
+    const store = createStorage()
+    const googleAauth2 = createFureOAuth2GoogleProvider({
+        redirectUri: 'http://localhost:4000/callback'
+        , state: true
+        , store
+    })
+    const url = googleAauth2.generateAuthUrl()
+    const { searchParams, origin, pathname } = new URL(url)
 
-// test('generation of generic authentication URL, whit all supported parameters', (t) => {
-// })
+    t.is(origin + pathname, googleAauth2.authenticationUrl)
+    t.true(typeof searchParams.get('state') === 'string')
+    t.is(searchParams.get('state').length, 36)
+    t.is(searchParams.get('prompt'), null)
+    t.is(searchParams.get('response_type'), googleAauth2.responseType)
+    t.is(searchParams.get('access_type'), googleAauth2.accessType)
+    t.is(searchParams.get('scope'), googleAauth2.scope.join(' '))
+    t.is(searchParams.get('client_id'), googleAauth2.clientId)
+    t.is(searchParams.get('redirect_uri'), googleAauth2.redirectUri)
+})
+
+test('get access token', async (t) => {
+    const googleAauth2 = createFureOAuth2GoogleProvider()
+    const scope = 'https://www.googleapis.com/auth/userinfo.email'
+    const idToken = 'foobar'
+    const tokenType = 'Bearer'
+    const expiresIn = 3599
+    const accessToken = 'abcd123'
+    const refreshToken = 'abcd'
+
+    const mock = nock(baseUrl, {
+        reqheaders: {
+            'content-type': 'application/x-www-form-urlencoded'
+        }
+    })
+        .post('/token')
+        .reply(200, {
+            scope: scope
+            , id_token: idToken
+            , token_type: tokenType
+            , expires_in: expiresIn
+            , access_token: accessToken
+            , refresh_token: refreshToken
+        })
+
+    const res = await googleAauth2.authenticate('/auth?code=123')
+    mock.done()
+
+    t.is(res.scope, scope)
+    t.is(res.id_token, idToken)
+    t.is(res.token_type, tokenType)
+    t.is(res.expires_in, expiresIn)
+    t.is(res.access_token, accessToken)
+    t.is(res.refresh_token, refreshToken)
+})
+
+test('get access token error', async (t) => {
+    const googleAauth2 = createFureOAuth2GoogleProvider()
+    const mock = nock(baseUrl, {
+        reqheaders: {
+            'content-type': 'application/x-www-form-urlencoded'
+        }
+    })
+        .post('/token')
+        .reply(400, {
+            error: 'something has gone wrong'
+            , error_description: 'something has gone wrong description'
+        })
+
+    const err: FureError = await t.throwsAsync(() => googleAauth2.authenticate('/auth?code=123'))
+    mock.done()
+
+    t.is(err.statusCode, 400)
+    t.is(err.message, 'something has gone wrong')
+    t.is(err.description, 'something has gone wrong description')
+})

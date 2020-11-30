@@ -106,12 +106,17 @@ export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
 }
 
 /**
- * Authentication provider entity.
+ * Authentication provider.
  */
-const provider = 'google'
+const PROVIDER = 'google'
 
 /**
- * The base endpoints for handle authentication.
+ * Base endpoint for token retrieval.
+ */
+const GOOGLE_TOKEN_URL = 'https://www.googleapis.com/oauth2/v4/token'
+
+/**
+ * Base endpoints for handle authentication.
  */
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 
@@ -121,27 +126,29 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     readonly responseType: ResponseType
     readonly codeChallengeMethod: CodeChallengeMethod
     readonly includeGrantedScopes: boolean
+
     constructor({
         clientId
         , clientSecret
         , redirectUri
+        , store
         , state = false
         , scope = ['openid', 'email', 'profile']
-        , store
         , prompt = undefined
         , accessType = 'offline'
         , responseType = 'code'
         , codeChallengeMethod = 'S256'
         , includeGrantedScopes = false
     }: GoogleOAuth2ProviderOptions) {
-        super(provider, GOOGLE_AUTH_URL, {
+        super(PROVIDER, GOOGLE_AUTH_URL, GOOGLE_TOKEN_URL, {
             clientId
             , clientSecret
             , redirectUri
+            , store
             , state
             , scope
-            , store
         })
+
         this.prompt = prompt
         this.accessType = accessType
         this.responseType = responseType
@@ -156,6 +163,26 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     }
 
     /**
+     * Gets the access token for the given code in the current url.
+     * @param currentUrl Is current request url, is usually obtained through the property url of Request object.
+     */
+    private async getTokenOnAuthenticate(currentUrl: string) {
+        const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
+        const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
+        const code = this.getRequiredParam('code', callbackUrlQueryObj)
+        const resTokens = await this.getTokens({
+            code
+        })
+
+        if (resTokens.error) {
+            const { status, message, description } = resTokens.error
+            throw this.error(status, message, description)
+        }
+
+        return resTokens.credentials
+    }
+
+    /**
      * Generate URI for consent page landing.
      * @returns URI to consent page.
      */
@@ -165,6 +192,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const loginHint = options.loginHint
         const codeChallenge = options.codeChallenge
 
+        const state = options.state ?? this.state
         const scope = options.scope ?? this.scope
         const prompt = options.prompt ?? this.prompt
         const accessType = options.accessType ?? this.accessType
@@ -175,6 +203,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
 
         const params = {
             hd
+            , state
             , scope
             , prompt
             , client_id: clientId
@@ -192,13 +221,18 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     }
 
     /**
-     * Method used for parse the returned URI after an succes authentication in the consent page,
-     * then a request is made with part of the parameters extracted from the returned URI.
-     * @return user information, this can varies depending of the "scope" parameter.
-     */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    callbackHandler() { }
+    * Method used for parse the returned URL after an succes authentication in the consent page,
+    * then a request is made with part of the parameters extracted from that URL.
+    * @param currentUrl Is current request url, is usually obtained through the property url of Request object.
+    * @return Authentication credentials and authenticated user information, this can varies depending of the "scope" parameter.
+    */
+    authenticate(currentUrl: string) {
+        return this.getTokenOnAuthenticate(currentUrl)
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     revokeToken() { }
+
+    // private getUserInfo() { }
 }
 
