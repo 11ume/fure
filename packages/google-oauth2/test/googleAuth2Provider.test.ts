@@ -1,7 +1,8 @@
 import test from 'ava'
-import fureOAuth2GoogleProvider from '..'
-import { GoogleOAuth2ProviderOptions } from '../src/provider'
 import nock from 'nock'
+import fureOAuth2GoogleProvider, { GoogleOAuth2ProviderOptions } from '..'
+import { FureError } from 'fure-provider/src/error'
+import { createStorage } from 'fure-storage'
 
 const baseUrl = 'https://www.googleapis.com/oauth2/v4'
 
@@ -100,7 +101,28 @@ test('create generic authentication URL piorice params passed in the method', (t
     t.is(searchParams.get('scope'), scope.join(' '))
 })
 
-test('get authentication access token', async (t) => {
+test('create generic authentication URL whit state enabled', (t) => {
+    const store = createStorage()
+    const googleAauth2 = createFureOAuth2GoogleProvider({
+        redirectUri: 'http://localhost:4000/callback'
+        , state: true
+        , store
+    })
+    const url = googleAauth2.generateAuthUrl()
+    const { searchParams, origin, pathname } = new URL(url)
+
+    t.is(origin + pathname, googleAauth2.authenticationUrl)
+    t.true(typeof searchParams.get('state') === 'string')
+    t.is(searchParams.get('state').length, 36)
+    t.is(searchParams.get('prompt'), null)
+    t.is(searchParams.get('response_type'), googleAauth2.responseType)
+    t.is(searchParams.get('access_type'), googleAauth2.accessType)
+    t.is(searchParams.get('scope'), googleAauth2.scope.join(' '))
+    t.is(searchParams.get('client_id'), googleAauth2.clientId)
+    t.is(searchParams.get('redirect_uri'), googleAauth2.redirectUri)
+})
+
+test('get access token', async (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider()
     const scope = 'https://www.googleapis.com/auth/userinfo.email'
     const idToken = 'foobar'
@@ -135,7 +157,7 @@ test('get authentication access token', async (t) => {
     t.is(res.refresh_token, refreshToken)
 })
 
-test('get authentication access token error', async (t) => {
+test('get access token error', async (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider()
     const mock = nock(baseUrl, {
         reqheaders: {
@@ -148,12 +170,10 @@ test('get authentication access token error', async (t) => {
             , error_description: 'something has gone wrong description'
         })
 
-    try {
-        await googleAauth2.authenticate('/auth?code=123')
-        mock.done()
-    } catch (err) {
-        t.is(err.statusCode, 400)
-        t.is(err.message, 'something has gone wrong')
-        t.is(err.description, 'something has gone wrong description')
-    }
+    const err: FureError = await t.throwsAsync(() => googleAauth2.authenticate('/auth?code=123'))
+    mock.done()
+
+    t.is(err.statusCode, 400)
+    t.is(err.message, 'something has gone wrong')
+    t.is(err.description, 'something has gone wrong description')
 })

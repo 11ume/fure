@@ -126,6 +126,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     readonly responseType: ResponseType
     readonly codeChallengeMethod: CodeChallengeMethod
     readonly includeGrantedScopes: boolean
+
     constructor({
         clientId
         , clientSecret
@@ -191,6 +192,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const loginHint = options.loginHint
         const codeChallenge = options.codeChallenge
 
+        const state = options.state ?? this.state
         const scope = options.scope ?? this.scope
         const prompt = options.prompt ?? this.prompt
         const accessType = options.accessType ?? this.accessType
@@ -201,6 +203,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
 
         const params = {
             hd
+            , state
             , scope
             , prompt
             , client_id: clientId
