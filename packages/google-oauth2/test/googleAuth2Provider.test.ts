@@ -110,22 +110,22 @@ test('get access authentication token', async (t) => {
     })
         .post('/token')
         .reply(200, {
-            access_token: 'abc123'
-            , expires_in: 300
-            , id_token: 'abc123'
-            , refresh_token: 'abc123'
-            , scope: 'email'
-            , token_type: 'authorization_code'
+            access_token: 'abcd123'
+            , expires_in: 3599
+            , id_token: 'foobar'
+            , refresh_token: 'abcd'
+            , scope: 'https://www.googleapis.com/auth/userinfo.email'
+            , token_type: 'Bearer'
         })
 
     const res = await googleAauth2.authenticate('/foo/auth?code=123')
     scope.done()
 
-    t.is(res.access_token, 'abc123')
-    t.is(res.expires_in, 300)
-    t.is(res.id_token, 'abc123')
-    t.is(res.refresh_token, 'abc123')
-    t.is(res.scope, 'email')
-    t.is(res.token_type, 'authorization_code')
+    t.is(res.access_token, 'abcd123')
+    t.is(res.expires_in, 3599)
+    t.is(res.id_token, 'foobar')
+    t.is(res.refresh_token, 'abcd')
+    t.is(res.scope, 'https://www.googleapis.com/auth/userinfo.email')
+    t.is(res.token_type, 'Bearer')
 })
 
