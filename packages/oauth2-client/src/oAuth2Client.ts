@@ -1,10 +1,16 @@
 import querystring from 'querystring'
-import { Fetch } from './fetch'
-import { deleteEmptyValues, createError, InteralError } from 'fure-shared'
+import { Fetch, Response } from './fetch'
+import { deleteEmptyValues } from 'fure-shared'
 import { AuthTokenResponse, TokenCredentials, TokenRequestValues } from './credentials'
 
+type ResponseError = {
+    status: number
+    , message: string
+    , description: string
+}
+
 type GetTokenResponse = {
-    error: InteralError
+    error: ResponseError
     credentials: Partial<TokenCredentials>
 }
 
@@ -91,29 +97,28 @@ export class OAuth2Client {
     }
 
     private async handleGetTokenResponse(res: Response): Promise<GetTokenResponse> {
-        try {
-            const body: AuthTokenResponse = await res.json()
-            if (res.ok) {
-                return {
-                    error: null
-                    , credentials: body
-                }
+        const body: AuthTokenResponse = await res.json()
+        if (res.ok) {
+            return {
+                error: null
+                , credentials: body
             }
+        }
 
-            const error = createError(res.status, body.error, body.error_description)
-            return {
-                error
-                , credentials: null
-            }
-        } catch (err) {
-            const error = createError(500, 'Invalid JSON', 'A valid JSON type was expected', err)
-            return {
-                error
-                , credentials: null
+        return {
+            credentials: null
+            , error: {
+                status: res.status
+                , message: body.error
+                , description: body.error_description
             }
         }
     }
 
+    /**
+     * Make http request to recibe the token of endpoint service.
+     * @param values request body values
+     */
     private makeGetTokenRequest(values: TokenRequestValues): Promise<Response> {
         const cleanedValues = deleteEmptyValues(values)
         const body = querystring.stringify(cleanedValues)
@@ -127,14 +132,14 @@ export class OAuth2Client {
     }
 
     /**
-     * Gets the access token for the given code.
+     * Gets token credentials for the given code.
      * @typedef {GetTokenOptions}
      * @param {string} GetTokenOptions.code Authorization code.
      * @param {string} GetTokenOptions.clientId Application ID.
      * @param {string} GetTokenOptions.redirectUri The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
      * @param {string} GetTokenOptions.codeVerifier Is a high-entropy cryptographic random string using the unreserved characters .
      */
-    async getToken({
+    async getTokens({
         code
         , clientId
         , redirectUri

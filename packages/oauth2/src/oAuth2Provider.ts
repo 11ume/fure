@@ -202,9 +202,9 @@ export class FureOAuth2Provider extends FureProvider {
     }
 
     /**
-     * Gets the access token for the given code.
+     * Gets token credentials for the given code.
      */
-    protected async getToken(options: GetTokenOptions) {
-        return this.#oAuth2Client.getToken(options)
+    protected async getTokens(options: GetTokenOptions) {
+        return this.#oAuth2Client.getTokens(options)
     }
 }

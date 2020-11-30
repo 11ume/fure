@@ -165,13 +165,20 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
      * Gets the access token for the given code in the current url.
      * @param currentUrl Is current request url, is usually obtained through the property url of Request object.
      */
-    private getTokenOnAuthenticate(currentUrl: string) {
+    private async getTokenOnAuthenticate(currentUrl: string) {
         const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
         const code = this.getRequiredParam('code', callbackUrlQueryObj)
-        return this.getToken({
+        const resTokens = await this.getTokens({
             code
         })
+
+        if (resTokens.error) {
+            const { status, message, description } = resTokens.error
+            throw this.error(status, message, description)
+        }
+
+        return resTokens.credentials
     }
 
     /**
