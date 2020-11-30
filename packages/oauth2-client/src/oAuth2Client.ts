@@ -1,7 +1,7 @@
 import querystring from 'querystring'
 import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch'
-import { toCamelcase, deleteEmptyValues, createError } from 'fure-shared'
-import { AuthTokenResponse } from './tokens'
+import { deleteEmptyValues, createError } from 'fure-shared'
+import { AuthTokenResponse, TokenCredentials } from './tokens'
 
 interface OAuth2ClientOptions {
     readonly clientId: string
@@ -12,7 +12,7 @@ interface OAuth2ClientOptions {
 }
 
 type GetTokenResponse = {
-    tokens: Partial<AuthTokenResponse>
+    tokens: Partial<TokenCredentials>
 }
 
 export type GenerateAuthUrlOptions = {
@@ -58,14 +58,14 @@ export class OAuth2Client {
     constructor({
         clientId
         , clientSecret
-        , redirectUri
         , tokenUrl
+        , redirectUri
         , authenticationUrl
     }: OAuth2ClientOptions) {
         this.clientId = clientId
         this.clientSecret = clientSecret
-        this.redirectUri = redirectUri
         this.tokenUrl = tokenUrl
+        this.redirectUri = redirectUri
         this.authenticationUrl = authenticationUrl
     }
 
@@ -110,13 +110,14 @@ export class OAuth2Client {
         , redirectUri
         , codeVerifier = undefined
     }: GetTokenOptions): Promise<GetTokenResponse> {
+        const grantType = 'authorization_code'
         const values = {
             code
             , client_secret: this.clientSecret
             , code_verifier: codeVerifier
             , client_id: clientId ?? this.clientId
             , redirect_uri: redirectUri ?? this.redirectUri
-            , grant_type: 'authorization_codes'
+            , grant_type: grantType
         }
 
         const cleanedValues = deleteEmptyValues(values)
@@ -130,13 +131,11 @@ export class OAuth2Client {
 
         const body: AuthTokenResponse = await res.json()
         if (res.ok) {
-            const tokens = toCamelcase<AuthTokenResponse>(body)
             return {
-                tokens
+                tokens: body
             }
         }
 
-        const errBody = toCamelcase<AuthTokenResponse>(body)
-        throw createError(res.status, errBody.error, errBody.errorDescription)
+        throw createError(res.status, body.error, body.error_description)
     }
 }

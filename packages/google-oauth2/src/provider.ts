@@ -160,6 +160,17 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
     }
 
+    private getTokenOnAuthenticate(url: string) {
+        const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${url}`)
+        const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
+        const paramCode = this.getRequiredParam('code', callbackUrlQueryObj)
+        return this.getToken({
+            code: paramCode
+        })
+    }
+
+    // private getUserInfo() { }
+
     /**
      * Generate URI for consent page landing.
      * @returns URI to consent page.
@@ -197,17 +208,12 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     }
 
     /**
-     * Method used for parse the returned URI after an succes authentication in the consent page,
-     * then a request is made with part of the parameters extracted from the returned URI.
-     * @return user information, this can varies depending of the "scope" parameter.
-     */
-    callbackHandler(url: string) {
-        const currentUrl = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${url}`)
-        const callbackUrlQueryObj = this.callbackUrlQueryToObject(currentUrl)
-        const paramCode = this.getRequiredParam('code', callbackUrlQueryObj)
-        return this.getToken({
-            code: paramCode
-        })
+    * Method used for parse the returned URI after an succes authentication in the consent page,
+    * then a request is made with part of the parameters extracted from the returned URI.
+    * @return user information, this can varies depending of the "scope" parameter.
+    */
+    authenticate(url: string) {
+        return this.getTokenOnAuthenticate(url)
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

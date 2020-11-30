@@ -51,7 +51,7 @@ export interface IGenerateAuthUrlOptions {
 
 export interface IFureOAuth2Provider {
     generateAuthUrl(options: GenerateAuthUrlOptions): string
-    callbackHandler(url: string): any
+    authenticate(url: string): any
     revokeToken(): any
 }
 
@@ -186,7 +186,7 @@ export class FureOAuth2Provider extends FureProvider {
         return this.#oAuth2Client.generateAuthenticationUrl(options)
     }
 
-    protected callbackUrlQueryToObject(currentUrl: URL): querystring.ParsedUrlQuery {
+    protected getQueryObjectFromUrl(currentUrl: URL): querystring.ParsedUrlQuery {
         const urlWhioutQuestionMark = currentUrl.search.slice(1)
         return querystring.parse(urlWhioutQuestionMark)
     }
