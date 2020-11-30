@@ -1,7 +1,7 @@
 import querystring from 'querystring'
 import { Fetch } from './fetch'
 import { deleteEmptyValues, createError, InteralError } from 'fure-shared'
-import { AuthTokenResponse, TokenCredentials } from './credentials'
+import { AuthTokenResponse, TokenCredentials, TokenRequestValues } from './credentials'
 
 type GetTokenResponse = {
     error: InteralError
@@ -90,15 +90,39 @@ export class OAuth2Client {
         }
     }
 
-    /**
-     * Generate URI for consent page landing.
-     * @return URI to consent page.
-     */
-    generateAuthenticationUrl(options: GenerateAuthUrlOptions): string {
-        const params = this.prepareAuthUrlParams(options)
-        const cleanedParams = deleteEmptyValues(params)
-        const queryParams = querystring.stringify(cleanedParams)
-        return `${this.authenticationUrl}?${queryParams}`
+    private async handlerGetTokenResponse(res: Response): Promise<GetTokenResponse> {
+        try {
+            const body: AuthTokenResponse = await res.json()
+            if (res.ok) {
+                return {
+                    error: null
+                    , credentials: body
+                }
+            }
+
+            const error = createError(res.status, body.error, body.error_description)
+            return {
+                error
+                , credentials: null
+            }
+        } catch (err) {
+            const error = createError(500, 'Invalid JSON parse', 'JSON object expected', err)
+            return {
+                error
+                , credentials: null
+            }
+        }
+    }
+
+    private handleGetTokenRequest(values: TokenRequestValues): Promise<Response> {
+        const cleanedValues = deleteEmptyValues(values)
+        return this.#fetch(this.tokenUrl, {
+            method: 'POST'
+            , body: querystring.stringify(cleanedValues)
+            , headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
     }
 
     /**
@@ -125,27 +149,18 @@ export class OAuth2Client {
             , grant_type: grantType
         }
 
-        const cleanedValues = deleteEmptyValues(values)
-        const res = await this.#fetch(this.tokenUrl, {
-            method: 'POST'
-            , body: querystring.stringify(cleanedValues)
-            , headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        })
+        const res = await this.handleGetTokenRequest(values)
+        return this.handlerGetTokenResponse(res)
+    }
 
-        const body: AuthTokenResponse = await res.json()
-        if (res.ok) {
-            return {
-                error: null
-                , credentials: body
-            }
-        }
-
-        const error = createError(res.status, body.error, body.error_description)
-        return {
-            error
-            , credentials: null
-        }
+    /**
+     * Generate URI for consent page landing.
+     * @return URI to consent page.
+     */
+    generateAuthenticationUrl(options: GenerateAuthUrlOptions): string {
+        const params = this.prepareAuthUrlParams(options)
+        const cleanedParams = deleteEmptyValues(params)
+        const queryParams = querystring.stringify(cleanedParams)
+        return `${this.authenticationUrl}?${queryParams}`
     }
 }

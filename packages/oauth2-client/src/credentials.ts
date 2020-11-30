@@ -1,4 +1,13 @@
 /* eslint-disable camelcase */
+export interface TokenRequestValues {
+  code: string
+  client_secret: string
+  code_verifier: string
+  client_id: string
+  redirect_uri: string
+  grant_type: string
+}
+
 export interface TokenCredentials {
   /**
    * The scopes of access granted by the access_token expressed as a list of space-delimited, case-sensitive strings.
