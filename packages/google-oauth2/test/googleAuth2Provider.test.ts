@@ -2,6 +2,9 @@
 import test from 'ava'
 import fureOAuth2GoogleProvider from '..'
 import { GoogleOAuth2ProviderOptions } from '../src/provider'
+import nock from 'nock'
+
+const baseUrl = 'https://www.googleapis.com/oauth2/v4'
 
 const createFureOAuth2GoogleProvider = (options?: Omit<GoogleOAuth2ProviderOptions, 'clientId' | 'clientSecret'>) => {
     const clientId = '1234'
@@ -98,8 +101,31 @@ test('create generic authentication URL piorice params passed in the method', (t
     t.is(searchParams.get('scope'), scope.join(' '))
 })
 
-// test('generation of generic authentication URL, pass optional parameters', (t) => {
-// })
+test('get access authentication token', async (t) => {
+    const googleAauth2 = createFureOAuth2GoogleProvider()
+    const scope = nock(baseUrl, {
+        reqheaders: {
+            'content-type': 'application/x-www-form-urlencoded'
+        }
+    })
+        .post('/token')
+        .reply(200, {
+            access_token: 'abc123'
+            , expires_in: 300
+            , id_token: 'abc123'
+            , refresh_token: 'abc123'
+            , scope: 'email'
+            , token_type: 'authorization_code'
+        })
 
-// test('generation of generic authentication URL, whit all supported parameters', (t) => {
-// })
+    const res = await googleAauth2.authenticate('/foo/auth?code=123')
+    scope.done()
+
+    t.is(res.access_token, 'abc123')
+    t.is(res.expires_in, 300)
+    t.is(res.id_token, 'abc123')
+    t.is(res.refresh_token, 'abc123')
+    t.is(res.scope, 'email')
+    t.is(res.token_type, 'authorization_code')
+})
+

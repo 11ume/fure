@@ -7,6 +7,7 @@ export default {
     }
     , files: [
         '!dev'
+        , '!test/healpers'
     ]
     , require: ['ts-node/register']
     , extensions: ['ts']
