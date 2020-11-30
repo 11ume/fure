@@ -1,9 +1,10 @@
 import querystring from 'querystring'
 import { Fetch } from './fetch'
-import { deleteEmptyValues, createError } from 'fure-shared'
-import { AuthTokenResponse, TokenCredentials } from './tokens'
+import { deleteEmptyValues, createError, InteralError } from 'fure-shared'
+import { AuthTokenResponse, TokenCredentials } from './credentials'
 
 type GetTokenResponse = {
+    error: InteralError
     credentials: Partial<TokenCredentials>
 }
 
@@ -136,10 +137,15 @@ export class OAuth2Client {
         const body: AuthTokenResponse = await res.json()
         if (res.ok) {
             return {
-                credentials: body
+                error: null
+                , credentials: body
             }
         }
 
-        throw createError(res.status, body.error, body.error_description)
+        const error = createError(res.status, body.error, body.error_description)
+        return {
+            error
+            , credentials: null
+        }
     }
 }

@@ -164,13 +164,11 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     private getTokenOnAuthenticate(url: string) {
         const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${url}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
-        const paramCode = this.getRequiredParam('code', callbackUrlQueryObj)
+        const code = this.getRequiredParam('code', callbackUrlQueryObj)
         return this.getToken({
-            code: paramCode
+            code
         })
     }
-
-    // private getUserInfo() { }
 
     /**
      * Generate URI for consent page landing.
@@ -219,5 +217,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     revokeToken() { }
+
+    // private getUserInfo() { }
 }
 
