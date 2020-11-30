@@ -3,7 +3,7 @@ import { FureProvider } from 'fure-provider'
 import { IStorage, isStore } from 'fure-storage'
 import { getRequiredParam } from 'fure-shared'
 import { UniqueSessionTokenManager, IUniqueSessionTokenManager } from 'fure-ustm'
-import createOAuth2Client, { OAuth2Client, GenerateAuthUrlOptions, GetTokenOptions } from 'fure-oauth2-client'
+import createOAuth2Client, { OAuth2Client, GetTokenOptions } from 'fure-oauth2-client'
 
 export type AccessType = 'offline' | 'online'
 
@@ -42,15 +42,15 @@ export interface IGenerateAuthUrlOptions {
     /**
      * @optional
      * @recommended
-     * A string value created by your app to maintain state between the request and callback.
+     * A string value for maintain state between the request and callback.
      * This parameter should be used for preventing Cross-site Request Forgery and will be passed
      * back to you, unchanged, in your redirect URI.
      */
-    state?: string
+    state?: boolean
 }
 
 export interface IFureOAuth2Provider {
-    generateAuthUrl(options: GenerateAuthUrlOptions): string
+    generateAuthUrl(options: Partial<IGenerateAuthUrlOptions>): string
     authenticate(url: string): any
     revokeToken(): any
 }
@@ -66,13 +66,8 @@ export interface OAuth2ProviderOptions {
 
 export class FureOAuth2Provider extends FureProvider {
     /**
-     * Is a storage entity, for store and compare temporal values in different stages,
-     * like the unique session token value.
-     */
-    readonly #store: IStorage
-
-    /**
-     * An opaque string that is round-tripped in the protocol.
+     * Enable state security
+     * The state is a opaque string that is round-tripped in the protocol.
      * The state can be useful for correlating requests and responses.
      */
     readonly state: boolean
@@ -90,6 +85,12 @@ export class FureOAuth2Provider extends FureProvider {
      * Because your redirect_uri can be guessed, using a state value can increase your assurance that an incoming connection is the result of an authentication request initiated by your app. If you generate a random string or encode the hash of some client state (e.g., a cookie) in this state variable, you can validate the response to additionally ensure that the request and response originated in the same browser. This provides protection against attacks such as cross-site request forgery.
      **/
     readonly #uniqueSessionTokenManager: IUniqueSessionTokenManager = null
+
+    /**
+     * Is a storage entity, for store and compare temporal values in different stages,
+     * like the unique session token value.
+     */
+    readonly #store: IStorage
 
     /**
      * Authentication client for OAuth 2.0 protocol.
@@ -114,7 +115,7 @@ export class FureOAuth2Provider extends FureProvider {
         this.state = state
         this.scope = scope
         this.checkState()
-        this.checkStorage()
+        this.checkStorage(this.state)
         this.parsedRedirectUrl = new URL(redirectUri)
         this.#uniqueSessionTokenManager = new UniqueSessionTokenManager(this.#store, this.state)
         this.#oAuth2Client = createOAuth2Client({
@@ -168,8 +169,8 @@ export class FureOAuth2Provider extends FureProvider {
      * Check store property constraints.
      * If state property is true, an Storage object that implements the IStorage interface must be provided.
      */
-    private checkStorage(): void {
-        if (this.state) {
+    private checkStorage(state: boolean): void {
+        if (state) {
             if (this.#store === null) {
                 throw new Error('If the state parameter is true, you must pass a valid storage entity')
             }
@@ -182,8 +183,14 @@ export class FureOAuth2Provider extends FureProvider {
      * Generate URI for consent page landing.
      * @return URI to consent page.
      */
-    protected generateAuthenticationUrl(options: GenerateAuthUrlOptions): string {
-        return this.#oAuth2Client.generateAuthenticationUrl(options)
+    protected generateAuthenticationUrl(options: Partial<IGenerateAuthUrlOptions>): string {
+        this.checkStorage(options.state)
+        let state: string
+        if (options.state) {
+            state = this.#uniqueSessionTokenManager.create()
+            this.#uniqueSessionTokenManager.save(state)
+        }
+        return this.#oAuth2Client.generateAuthenticationUrl(options, state)
     }
 
     protected getQueryObjectFromUrl(currentUrl: URL): querystring.ParsedUrlQuery {

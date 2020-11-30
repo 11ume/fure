@@ -84,7 +84,7 @@ export class OAuth2Client {
         this.#fetch = fetch
     }
 
-    private prepareAuthUrlParams(options: GenerateAuthUrlOptions): GenerateAuthUrlOptions {
+    private prepareAuthUrlParams(options: GenerateAuthUrlOptions, state: string): GenerateAuthUrlOptions {
         let scope = options.scope
         if (options.scope instanceof Array) {
             scope = options.scope.join(' ')
@@ -93,6 +93,7 @@ export class OAuth2Client {
         return {
             ...options
             , scope
+            , state
         }
     }
 
@@ -163,8 +164,8 @@ export class OAuth2Client {
      * Generate URI for consent page landing.
      * @return URI to consent page.
      */
-    generateAuthenticationUrl(options: GenerateAuthUrlOptions): string {
-        const params = this.prepareAuthUrlParams(options)
+    generateAuthenticationUrl(options: GenerateAuthUrlOptions, state: string): string {
+        const params = this.prepareAuthUrlParams(options, state)
         const cleanedParams = deleteEmptyValues(params)
         const queryParams = querystring.stringify(cleanedParams)
         return `${this.authenticationUrl}?${queryParams}`

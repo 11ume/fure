@@ -25,5 +25,4 @@ export class DummyStore implements IStorage {
     remove = (value: string): boolean => this.#db.delete(value)
 }
 
-const createStorage = () => new DummyStore()
-export default createStorage
+export const createStorage = () => new DummyStore()
