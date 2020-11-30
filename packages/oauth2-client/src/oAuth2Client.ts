@@ -1,18 +1,19 @@
 import querystring from 'querystring'
-import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch'
+import { Fetch } from './fetch'
 import { deleteEmptyValues, createError } from 'fure-shared'
 import { AuthTokenResponse, TokenCredentials } from './tokens'
 
-interface OAuth2ClientOptions {
+type GetTokenResponse = {
+    credentials: Partial<TokenCredentials>
+}
+
+export interface OAuth2ClientOptions {
     readonly clientId: string
     readonly clientSecret: string
     readonly redirectUri: string
     readonly authenticationUrl: string
     readonly tokenUrl: string
-}
-
-type GetTokenResponse = {
-    tokens: Partial<TokenCredentials>
+    readonly fetch?: Fetch
 }
 
 export type GenerateAuthUrlOptions = {
@@ -55,18 +56,25 @@ export class OAuth2Client {
      */
     readonly authenticationUrl: string
 
+    /**
+     * Request agent abstraction interface.
+     */
+    readonly #fetch: Fetch
+
     constructor({
         clientId
         , clientSecret
         , tokenUrl
         , redirectUri
         , authenticationUrl
+        , fetch
     }: OAuth2ClientOptions) {
         this.clientId = clientId
         this.clientSecret = clientSecret
         this.tokenUrl = tokenUrl
         this.redirectUri = redirectUri
         this.authenticationUrl = authenticationUrl
+        this.#fetch = fetch
     }
 
     private prepareAuthUrlParams(options: GenerateAuthUrlOptions): GenerateAuthUrlOptions {
@@ -79,10 +87,6 @@ export class OAuth2Client {
             ...options
             , scope
         }
-    }
-
-    fetch(url: RequestInfo, init?: RequestInit): Promise<Response> {
-        return fetch(url, init)
     }
 
     /**
@@ -121,7 +125,7 @@ export class OAuth2Client {
         }
 
         const cleanedValues = deleteEmptyValues(values)
-        const res = await this.fetch(this.tokenUrl, {
+        const res = await this.#fetch(this.tokenUrl, {
             method: 'POST'
             , body: querystring.stringify(cleanedValues)
             , headers: {
@@ -132,7 +136,7 @@ export class OAuth2Client {
         const body: AuthTokenResponse = await res.json()
         if (res.ok) {
             return {
-                tokens: body
+                credentials: body
             }
         }
 

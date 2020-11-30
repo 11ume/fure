@@ -147,6 +147,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , state
             , scope
         })
+
         this.prompt = prompt
         this.accessType = accessType
         this.responseType = responseType

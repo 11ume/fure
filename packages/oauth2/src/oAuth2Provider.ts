@@ -3,7 +3,7 @@ import { FureProvider } from 'fure-provider'
 import { IStorage, isStore } from 'fure-storage'
 import { getRequiredParam } from 'fure-shared'
 import { UniqueSessionTokenManager, IUniqueSessionTokenManager } from 'fure-ustm'
-import { OAuth2Client, GenerateAuthUrlOptions, GetTokenOptions } from 'fure-oauth2-client'
+import createOAuth2Client, { OAuth2Client, GenerateAuthUrlOptions, GetTokenOptions } from 'fure-oauth2-client'
 
 export type AccessType = 'offline' | 'online'
 
@@ -117,11 +117,11 @@ export class FureOAuth2Provider extends FureProvider {
         this.checkStorage()
         this.parsedRedirectUrl = new URL(redirectUri)
         this.#uniqueSessionTokenManager = new UniqueSessionTokenManager(this.#store, this.state)
-        this.#oAuth2Client = new OAuth2Client({
+        this.#oAuth2Client = createOAuth2Client({
             clientId
             , clientSecret
-            , redirectUri
             , tokenUrl
+            , redirectUri
             , authenticationUrl
         })
     }
