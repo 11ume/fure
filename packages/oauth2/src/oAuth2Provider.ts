@@ -59,12 +59,18 @@ export interface OAuth2ProviderOptions {
     readonly clientId: string
     readonly clientSecret: string
     readonly redirectUri: string
+    readonly store?: IStorage
     readonly state?: boolean
     readonly scope?: string[]
-    readonly store?: IStorage
 }
 
 export class FureOAuth2Provider extends FureProvider {
+    /**
+     * Is a storage entity, for store and compare temporal values in different stages,
+     * like the unique session token value.
+     */
+    readonly #store: IStorage
+
     /**
      * An opaque string that is round-tripped in the protocol.
      * The state can be useful for correlating requests and responses.
@@ -76,12 +82,6 @@ export class FureOAuth2Provider extends FureProvider {
      * @link https://developers.google.com/identity/protocols/oauth2/scopes
      */
     readonly scope: string[]
-
-    /**
-     * Is a storage entity, for store and compare temporal values in different stages,
-     * like the unique session token value.
-     */
-    readonly #store: IStorage
 
     /*
      * An opaque string that is round-tripped in the protocol; that is to say, it is returned as a URI parameter in the Basic flow, and in the URI #fragment
@@ -105,17 +105,17 @@ export class FureOAuth2Provider extends FureProvider {
         clientId
         , clientSecret
         , redirectUri
+        , store = null
         , state
         , scope
-        , store = null
     }: OAuth2ProviderOptions) {
         super(provider)
+        this.#store = store
         this.state = state
         this.scope = scope
-        this.#store = store
         this.checkState()
         this.checkStorage()
-        this.parsedRedirectUrl = new URL(this.#oAuth2Client.redirectUri)
+        this.parsedRedirectUrl = new URL(redirectUri)
         this.#uniqueSessionTokenManager = new UniqueSessionTokenManager(this.#store, this.state)
         this.#oAuth2Client = new OAuth2Client({
             clientId
@@ -196,13 +196,12 @@ export class FureOAuth2Provider extends FureProvider {
     }
 
     protected getRequiredParam(id: string, parsedredirectUri: querystring.ParsedUrlQuery): string {
-        const param = getRequiredParam(id, parsedredirectUri.state)
+        const param = getRequiredParam(id, parsedredirectUri[id])
         if (param) return param
         throw new Error(`The ${id} param is missing, or it has been altered`)
     }
 
     protected async getToken(options: GetTokenOptions) {
-        const res = this.#oAuth2Client.getToken(options)
-        return res
+        return this.#oAuth2Client.getToken(options)
     }
 }

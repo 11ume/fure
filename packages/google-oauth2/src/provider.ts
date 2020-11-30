@@ -130,9 +130,9 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         clientId
         , clientSecret
         , redirectUri
+        , store
         , state = false
         , scope = ['openid', 'email', 'profile']
-        , store
         , prompt = undefined
         , accessType = 'offline'
         , responseType = 'code'
@@ -143,9 +143,9 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             clientId
             , clientSecret
             , redirectUri
+            , store
             , state
             , scope
-            , store
         })
         this.prompt = prompt
         this.accessType = accessType
