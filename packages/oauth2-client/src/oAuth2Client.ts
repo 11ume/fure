@@ -1,7 +1,7 @@
 import querystring from 'querystring'
 import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch'
 import { toCamelcase, deleteEmptyValues, createError } from 'fure-shared'
-import { AuthTokenResponse as TokenCredentials } from './credentials'
+import { AuthTokenResponse } from './tokens'
 
 interface OAuth2ClientOptions {
     readonly clientId: string
@@ -12,7 +12,7 @@ interface OAuth2ClientOptions {
 }
 
 type GetTokenResponse = {
-    tokens: Partial<TokenCredentials>
+    tokens: Partial<AuthTokenResponse>
 }
 
 export type GenerateAuthUrlOptions = {
@@ -128,15 +128,15 @@ export class OAuth2Client {
             }
         })
 
-        const body: TokenCredentials = await res.json()
+        const body: AuthTokenResponse = await res.json()
         if (res.ok) {
-            const tokens = toCamelcase<TokenCredentials>(body)
+            const tokens = toCamelcase<AuthTokenResponse>(body)
             return {
                 tokens
             }
         }
 
-        const errBody = toCamelcase<TokenCredentials>(body)
+        const errBody = toCamelcase<AuthTokenResponse>(body)
         throw createError(res.status, errBody.error, errBody.errorDescription)
     }
 }
