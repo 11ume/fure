@@ -4,7 +4,7 @@ import { getRequiredParam } from 'fure-shared'
 import { v4 as uuidv4 } from 'uuid'
 import createOAuth2Client, { OAuth2Client, GetTokenOptions } from 'fure-oauth2-client'
 
-export interface IGenerateOAuthUrlOptions {
+export interface IGenerateAuthParams {
     /**
      * @required
      * Determines whether the response data included when the redirect back to the app occurs is in URL parameters or fragments. See the Confirming Identity section to choose which type your app should use.
@@ -41,13 +41,13 @@ export interface IGenerateOAuthUrlOptions {
     state?: boolean
 }
 
-export type GenerateAuthUrlResult = {
+export type GenerateAuthResult = {
     url: string
     state?: string
 }
 
 export interface IFureOAuth2Provider {
-    generateAuthUrl(options: Partial<IGenerateOAuthUrlOptions>): GenerateAuthUrlResult
+    generateAuth(options: Partial<IGenerateAuthParams>): GenerateAuthResult
     authenticate(url: string, options?: GetTokenOptions): Promise<any>
     revokeToken(): boolean
 }
@@ -117,17 +117,12 @@ export class FureOAuth2Provider extends FureProvider {
         return uuidv4()
     }
 
-    protected generateAuthenticationUrl(options: Partial<IGenerateOAuthUrlOptions>): GenerateAuthUrlResult {
-        let state: string = null
-        if (options.state) {
-            state = this.createState()
-        }
+    protected generateAuthStateParam(params: Partial<IGenerateAuthParams>) {
+        return params.state ? this.createState() : null
+    }
 
-        const url = this.#oAuth2Client.generateAuthenticationUrl(options, state)
-        return {
-            url
-            , state
-        }
+    protected generateAuthenticationUrl(params: Partial<IGenerateAuthParams>, state: string): string {
+        return this.#oAuth2Client.generateAuthenticationUrl(params, state)
     }
 
     protected getQueryObjectFromUrl(currentUrl: URL): querystring.ParsedUrlQuery {

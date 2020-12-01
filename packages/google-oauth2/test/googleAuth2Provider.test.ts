@@ -17,7 +17,7 @@ const createFureOAuth2GoogleProvider = (options?: Partial<GoogleOAuth2ProviderOp
 
 test('create generic authentication URL', (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider()
-    const auth = googleAauth2.generateAuthUrl()
+    const auth = googleAauth2.generateAuth()
     const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
@@ -38,7 +38,7 @@ test('create generic authentication URL whit uncommon params', (t) => {
     const codeChallenge = 'abcd'
     const codeChallengeMethod = 'plain'
 
-    const auth = googleAauth2.generateAuthUrl({
+    const auth = googleAauth2.generateAuth({
         hd
         , loginHint
         , codeChallenge
@@ -75,7 +75,7 @@ test('create generic authentication URL piorice params passed in the method', (t
     const codeChallenge = 'foobar'
     const includeGrantedScopes = false
 
-    const auth = googleAauth2.generateAuthUrl({
+    const auth = googleAauth2.generateAuth({
         prompt
         , scope
         , accessType
@@ -102,7 +102,7 @@ test('create generic authentication URL whit state enabled', (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider({
         state: true
     })
-    const url = googleAauth2.generateAuthUrl()
+    const url = googleAauth2.generateAuth()
     const { searchParams, origin, pathname } = new URL(url.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)

@@ -23,7 +23,7 @@ export interface OAuth2ClientOptions {
     readonly fetch?: Fetch
 }
 
-export type GenerateAuthUrlOptions = {
+export type GenerateAuthUrlParams = {
     [key: string]: string | string[] | boolean
 }
 
@@ -72,7 +72,7 @@ export class OAuth2Client {
         this.#fetch = fetch
     }
 
-    private prepareAuthUrlParams(options: GenerateAuthUrlOptions, state: string): GenerateAuthUrlOptions {
+    private prepareAuthUrlParams(options: GenerateAuthUrlParams, state: string): GenerateAuthUrlParams {
         let scope = options.scope
         if (options.scope instanceof Array) {
             scope = options.scope.join(' ')
@@ -136,9 +136,9 @@ export class OAuth2Client {
         return this.handleGetTokenResponse(res)
     }
 
-    generateAuthenticationUrl(options: GenerateAuthUrlOptions, state: string): string {
-        const params = this.prepareAuthUrlParams(options, state)
-        const cleanedParams = deleteEmptyValues(params)
+    generateAuthenticationUrl(params: GenerateAuthUrlParams, state: string): string {
+        const preparedParams = this.prepareAuthUrlParams(params, state)
+        const cleanedParams = deleteEmptyValues(preparedParams)
         const queryParams = querystring.stringify(cleanedParams)
         return `${this.authenticationUrl}?${queryParams}`
     }

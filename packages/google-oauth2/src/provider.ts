@@ -1,7 +1,7 @@
 import {
     IFureOAuth2Provider
-    , IGenerateOAuthUrlOptions
-    , GenerateAuthUrlResult
+    , IGenerateAuthParams
+    , GenerateAuthResult
     , OAuth2ProviderOptions
     , GetTokenOptionsProvider
     , FureOAuth2Provider
@@ -12,7 +12,7 @@ type AccessType = 'offline' | 'online'
 type ResponseType = 'code' | 'code token'
 type CodeChallengeMethod = 'plain' | 'S256'
 
-interface IGoogleGenerateOAuthUrlOptions extends IGenerateOAuthUrlOptions {
+interface IGoogleGenerateAuthParams extends IGenerateAuthParams {
     /**
      * @recommended
      * Indicates whether your application can refresh access tokens
@@ -175,7 +175,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return resTokens.credentials
     }
 
-    generateAuthUrl(options: IGoogleGenerateOAuthUrlOptions = {}): GenerateAuthUrlResult {
+    private prepareAuthParams(options: IGoogleGenerateAuthParams = {}): Partial<IGenerateAuthParams> {
         const hd = options.hd
         const clientId = this.clientId
         const loginHint = options.loginHint
@@ -206,7 +206,17 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
 
         this.checkParamChallange(options.codeChallengeMethod, options.codeChallenge)
-        return this.generateAuthenticationUrl(params)
+        return params
+    }
+
+    generateAuth(params: IGoogleGenerateAuthParams = {}): GenerateAuthResult {
+        const preparedParams = this.prepareAuthParams(params)
+        const state = this.generateAuthStateParam(preparedParams)
+        const url = this.generateAuthenticationUrl(preparedParams, state)
+        return {
+            url
+            , state
+        }
     }
 
     authenticate(currentUrl: string, options?: GetTokenOptionsProvider) {
