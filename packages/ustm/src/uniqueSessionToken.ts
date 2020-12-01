@@ -2,29 +2,24 @@ import { v4 as uuidv4 } from 'uuid'
 import { IStorage } from 'fure-storage'
 
 export interface IUniqueSessionTokenManager {
-    readonly enabled: boolean
     create(): string
     save(code: string): void
-    valid(code: string): boolean
+    validate(code: string): boolean
+    remove(code: string): boolean
 }
 
 export class UniqueSessionTokenManager implements IUniqueSessionTokenManager {
     readonly #storage: IStorage
-    readonly enabled: boolean
-    constructor(storage: IStorage, enabled: boolean) {
+    constructor(storage: IStorage) {
         this.#storage = storage
-        this.enabled = enabled
     }
 
     create = (): string => uuidv4()
     save = (code: string): void => this.#storage.add(code)
-    valid = (code: string): boolean => {
+    remove = (code: string): boolean => this.#storage.remove(code)
+    validate = (code: string): boolean => {
         const found = this.#storage.get(code)
-        if (found?.value) {
-            this.#storage.remove(found.value)
-            return true
-        }
-
+        if (found?.value) return true
         return false
     }
 }

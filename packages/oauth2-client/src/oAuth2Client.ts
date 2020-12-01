@@ -49,17 +49,17 @@ export class OAuth2Client {
     readonly clientSecret: string
 
     /**
-     * URL used for create an authorization token.
-     */
-    readonly tokenUrl: string
-
-    /**
      * The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
      */
     readonly redirectUri: string
 
     /**
-     * URL used for create an authorization request link.
+     * Base URL for token retrieval.
+     */
+    readonly tokenUrl: string
+
+    /**
+     * Base URL for handle authentication.
      */
     readonly authenticationUrl: string
 
@@ -72,8 +72,8 @@ export class OAuth2Client {
         clientId
         , clientSecret
         , tokenUrl
-        , redirectUri
         , authenticationUrl
+        , redirectUri
         , fetch
     }: OAuth2ClientOptions) {
         this.clientId = clientId

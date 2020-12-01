@@ -51,11 +51,14 @@ export interface IGenerateAuthUrlOptions {
 
 export interface IFureOAuth2Provider {
     generateAuthUrl(options: Partial<IGenerateAuthUrlOptions>): string
-    authenticate(url: string): any
+    authenticate(url: string, options?: GetTokenOptions): any
     revokeToken(): any
 }
 
 export interface OAuth2ProviderOptions {
+    readonly provider: string
+    readonly tokenUrl: string
+    readonly authenticationUrl: string
     readonly clientId: string
     readonly clientSecret: string
     readonly redirectUri: string
@@ -63,6 +66,8 @@ export interface OAuth2ProviderOptions {
     readonly state?: boolean
     readonly scope?: string[]
 }
+
+export type GetTokenOptionsProvider = Omit<GetTokenOptions, 'code' | 'codeVerifier'>
 
 export class FureOAuth2Provider extends FureProvider {
     /**
@@ -84,7 +89,7 @@ export class FureOAuth2Provider extends FureProvider {
      * The state can be useful for correlating requests and responses.
      * Because your redirect_uri can be guessed, using a state value can increase your assurance that an incoming connection is the result of an authentication request initiated by your app. If you generate a random string or encode the hash of some client state (e.g., a cookie) in this state variable, you can validate the response to additionally ensure that the request and response originated in the same browser. This provides protection against attacks such as cross-site request forgery.
      **/
-    readonly #uniqueSessionTokenManager: IUniqueSessionTokenManager = null
+    readonly #uniqueSessionTokenManager: IUniqueSessionTokenManager
 
     /**
      * Is a storage entity, for store and compare temporal values in different stages,
@@ -102,8 +107,17 @@ export class FureOAuth2Provider extends FureProvider {
      */
     protected readonly parsedRedirectUrl: URL
 
-    protected constructor(provider: string, authenticationUrl: string, tokenUrl: string, {
-        clientId
+    /**
+     * Creates an instance of FureOAuth2Provider.
+     * @param {string} provider Authentication provider.
+     * @param {string} authenticationUrl Base URL for handle authentication.
+     * @param {string} tokenUrl Base URL for token retrieval.
+     */
+    protected constructor({
+        provider
+        , tokenUrl
+        , authenticationUrl
+        , clientId
         , clientSecret
         , redirectUri
         , store = null
@@ -117,13 +131,16 @@ export class FureOAuth2Provider extends FureProvider {
         this.checkState()
         this.checkStorage(this.state)
         this.parsedRedirectUrl = new URL(redirectUri)
-        this.#uniqueSessionTokenManager = new UniqueSessionTokenManager(this.#store, this.state)
+        this.#uniqueSessionTokenManager = null
+        if (this.state) {
+            this.#uniqueSessionTokenManager = new UniqueSessionTokenManager(this.#store)
+        }
         this.#oAuth2Client = createOAuth2Client({
             clientId
             , clientSecret
             , tokenUrl
-            , redirectUri
             , authenticationUrl
+            , redirectUri
         })
     }
 
@@ -149,10 +166,17 @@ export class FureOAuth2Provider extends FureProvider {
     }
 
     /**
-     * URL used for create an authorization request link.
+     * Base URL for handle authentication.
      */
     get authenticationUrl() {
         return this.#oAuth2Client.authenticationUrl
+    }
+
+    /**
+    * Base URL for token retrieval.
+    */
+    get tokenUrl() {
+        return this.#oAuth2Client.tokenUrl
     }
 
     /**
@@ -198,8 +222,13 @@ export class FureOAuth2Provider extends FureProvider {
         return querystring.parse(urlWhioutQuestionMark)
     }
 
-    protected evaluateStateParam(param: string) {
-        return this.#uniqueSessionTokenManager.valid(param)
+    protected evaluateStateParam(parsedredirectUri: querystring.ParsedUrlQuery) {
+        const state = this.getRequiredParam('state', parsedredirectUri)
+        if (this.#uniqueSessionTokenManager.validate(state)) {
+            this.#uniqueSessionTokenManager.remove(state)
+            return
+        }
+        throw this.error(401, 'Wrong state parameter', 'The state parameter is missing or has been altered')
     }
 
     protected getRequiredParam(id: string, parsedredirectUri: querystring.ParsedUrlQuery): string {
