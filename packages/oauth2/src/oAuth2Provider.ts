@@ -4,10 +4,7 @@ import { IStorage, isStore } from 'fure-storage'
 import { getRequiredParam } from 'fure-shared'
 import { UniqueSessionTokenManager, IUniqueSessionTokenManager } from 'fure-ustm'
 import createOAuth2Client, { OAuth2Client, GetTokenOptions } from 'fure-oauth2-client'
-
-export type AccessType = 'offline' | 'online'
-
-export interface IGenerateAuthUrlOptions {
+export interface IGenerateOAuthUrlOptions {
     /**
      * @required
      * Determines whether the response data included when the redirect back to the app occurs is in URL parameters or fragments. See the Confirming Identity section to choose which type your app should use.
@@ -45,7 +42,7 @@ export interface IGenerateAuthUrlOptions {
 }
 
 export interface IFureOAuth2Provider {
-    generateAuthUrl(options: Partial<IGenerateAuthUrlOptions>): string
+    generateAuthUrl(options: Partial<IGenerateOAuthUrlOptions>): string
     authenticate(url: string, options?: GetTokenOptions): Promise<any>
     revokeToken(): boolean
 }
@@ -135,7 +132,7 @@ export class FureOAuth2Provider extends FureProvider {
         }
     }
 
-    protected generateAuthenticationUrl(options: Partial<IGenerateAuthUrlOptions>): string {
+    protected generateAuthenticationUrl(options: Partial<IGenerateOAuthUrlOptions>): string {
         this.checkStorage(options.state)
         let state: string
         if (options.state) {

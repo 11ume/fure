@@ -1,17 +1,17 @@
 import {
     IFureOAuth2Provider
-    , IGenerateAuthUrlOptions
+    , IGenerateOAuthUrlOptions
     , OAuth2ProviderOptions
     , GetTokenOptionsProvider
     , FureOAuth2Provider
-    , AccessType
 } from 'fure-oauth2'
 
 type Prompt = 'none' | 'consent' | 'select_account'
+type AccessType = 'offline' | 'online'
 type ResponseType = 'code' | 'code token'
 type CodeChallengeMethod = 'plain' | 'S256'
 
-interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
+interface IGoogleGenerateOAuthUrlOptions extends IGenerateOAuthUrlOptions {
     /**
      * @recommended
      * Indicates whether your application can refresh access tokens
@@ -176,7 +176,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return resTokens.credentials
     }
 
-    generateAuthUrl(options: IGoogleGenerateAuthUrlOptions = {}): string {
+    generateAuthUrl(options: IGoogleGenerateOAuthUrlOptions = {}): string {
         const hd = options.hd
         const clientId = this.clientId
         const loginHint = options.loginHint
