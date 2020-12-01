@@ -1,9 +1,11 @@
+import querystring from 'querystring'
 import {
     IFureOAuth2Provider
     , IGenerateAuthUrlOptions
-    , AccessType
-    , FureOAuth2Provider
     , OAuth2ProviderOptions
+    , GetTokenOptionsProvider
+    , FureOAuth2Provider
+    , AccessType
 } from 'fure-oauth2'
 
 type Prompt = 'none' | 'consent' | 'select_account'
@@ -97,7 +99,7 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
     codeChallenge?: string
 }
 
-export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
+export interface GoogleOAuth2ProviderSelfOptions extends OAuth2ProviderOptions {
     readonly prompt?: Prompt
     readonly accessType?: AccessType
     readonly responseType?: ResponseType
@@ -105,18 +107,23 @@ export interface GoogleOAuth2ProviderOptions extends OAuth2ProviderOptions {
     readonly includeGrantedScopes?: boolean
 }
 
+export type GoogleOAuth2ProviderOptions = Omit<GoogleOAuth2ProviderSelfOptions,
+    'provider'
+    | 'tokenUrl'
+    | 'authenticationUrl'>
+
 /**
  * Authentication provider.
  */
 const PROVIDER = 'google'
 
 /**
- * Base endpoint for token retrieval.
+ * Base URL for token retrieval.
  */
 const GOOGLE_TOKEN_URL = 'https://www.googleapis.com/oauth2/v4/token'
 
 /**
- * Base endpoints for handle authentication.
+ * Base URL for handle authentication.
  */
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 
@@ -126,7 +133,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     readonly responseType: ResponseType
     readonly codeChallengeMethod: CodeChallengeMethod
     readonly includeGrantedScopes: boolean
-
     constructor({
         clientId
         , clientSecret
@@ -139,9 +145,12 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , responseType = 'code'
         , codeChallengeMethod = 'S256'
         , includeGrantedScopes = false
-    }: GoogleOAuth2ProviderOptions) {
-        super(PROVIDER, GOOGLE_AUTH_URL, GOOGLE_TOKEN_URL, {
-            clientId
+    }: Omit<GoogleOAuth2ProviderOptions, 'provider' | 'tokenUrl' | 'authenticationUrl'>) {
+        super({
+            provider: PROVIDER
+            , tokenUrl: GOOGLE_TOKEN_URL
+            , authenticationUrl: GOOGLE_AUTH_URL
+            , clientId
             , clientSecret
             , redirectUri
             , store
@@ -162,16 +171,18 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
     }
 
+    private getParamCode(callbackUrlQueryObj: querystring.ParsedUrlQuery) {
+        return this.getRequiredParam('code', callbackUrlQueryObj)
+    }
+
     /**
      * Gets the access token for the given code in the current url.
      * @param currentUrl Is current request url, is usually obtained through the property url of Request object.
      */
-    private async getTokenOnAuthenticate(currentUrl: string) {
-        const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
-        const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
-        const code = this.getRequiredParam('code', callbackUrlQueryObj)
+    private async getTokenOnAuthenticate(code: string, options: GetTokenOptionsProvider) {
         const resTokens = await this.getTokens({
-            code
+            ...options
+            , code
         })
 
         if (resTokens.error) {
@@ -226,8 +237,12 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     * @param currentUrl Is current request url, is usually obtained through the property url of Request object.
     * @return Authentication credentials and authenticated user information, this can varies depending of the "scope" parameter.
     */
-    authenticate(currentUrl: string) {
-        return this.getTokenOnAuthenticate(currentUrl)
+    authenticate(currentUrl: string, options?: GetTokenOptionsProvider) {
+        const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
+        const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
+        const code = this.getParamCode(callbackUrlQueryObj)
+        if (this.state) this.evaluateStateParam(callbackUrlQueryObj)
+        return this.getTokenOnAuthenticate(code, options)
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

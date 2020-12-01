@@ -4,9 +4,7 @@ import fureOAuth2GoogleProvider, { GoogleOAuth2ProviderOptions } from '..'
 import { FureError } from 'fure-provider/src/error'
 import { createStorage } from 'fure-storage'
 
-const baseUrl = 'https://www.googleapis.com/oauth2/v4'
-
-const createFureOAuth2GoogleProvider = (options?: Omit<GoogleOAuth2ProviderOptions, 'clientId' | 'clientSecret'>) => {
+const createFureOAuth2GoogleProvider = (options?: Partial<GoogleOAuth2ProviderOptions>) => {
     const clientId = '1234'
     const clientSecret = 'abcd'
     const redirectUri = 'http://localhost:3000/auth/google/callback'
@@ -104,8 +102,7 @@ test('create generic authentication URL piorice params passed in the method', (t
 test('create generic authentication URL whit state enabled', (t) => {
     const store = createStorage()
     const googleAauth2 = createFureOAuth2GoogleProvider({
-        redirectUri: 'http://localhost:4000/callback'
-        , state: true
+        state: true
         , store
     })
     const url = googleAauth2.generateAuthUrl()
@@ -124,6 +121,8 @@ test('create generic authentication URL whit state enabled', (t) => {
 
 test('get access token', async (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider()
+    const { origin } = new URL(googleAauth2.tokenUrl)
+
     const scope = 'https://www.googleapis.com/auth/userinfo.email'
     const idToken = 'foobar'
     const tokenType = 'Bearer'
@@ -131,12 +130,12 @@ test('get access token', async (t) => {
     const accessToken = 'abcd123'
     const refreshToken = 'abcd'
 
-    const mock = nock(baseUrl, {
+    const mock = nock(origin, {
         reqheaders: {
             'content-type': 'application/x-www-form-urlencoded'
         }
     })
-        .post('/token')
+        .post('/oauth2/v4/token')
         .reply(200, {
             scope: scope
             , id_token: idToken
@@ -159,12 +158,13 @@ test('get access token', async (t) => {
 
 test('get access token error', async (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider()
-    const mock = nock(baseUrl, {
+    const { origin } = new URL(googleAauth2.tokenUrl)
+    const mock = nock(origin, {
         reqheaders: {
             'content-type': 'application/x-www-form-urlencoded'
         }
     })
-        .post('/token')
+        .post('/oauth2/v4/token')
         .reply(400, {
             error: 'something has gone wrong'
             , error_description: 'something has gone wrong description'
