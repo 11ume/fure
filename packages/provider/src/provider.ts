@@ -1,21 +1,11 @@
 import { FureError } from './error'
 
 export class FureProvider {
-    /**
-     * Name of authentication provider entity.
-     */
     protected readonly provider: string
     constructor(provider: string) {
         this.provider = provider
     }
 
-    /**
-     * Common error handler.
-     * @param code http status code
-     * @param message message of the error
-     * @param description message of the error
-     * @param error original error
-     **/
     error(code: number
         , message?: string
         , description?: string

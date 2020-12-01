@@ -136,7 +136,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , responseType = 'code'
         , codeChallengeMethod = 'S256'
         , includeGrantedScopes = false
-    }: Omit<GoogleOAuth2ProviderOptions, 'provider' | 'tokenUrl' | 'authenticationUrl'>) {
+    }: GoogleOAuth2ProviderOptions) {
         super({
             provider: PROVIDER
             , tokenUrl: GOOGLE_TOKEN_URL
@@ -144,9 +144,9 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , clientId
             , clientSecret
             , redirectUri
-            , store
             , state
             , scope
+            , store
         })
 
         this.prompt = prompt
@@ -162,14 +162,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
     }
 
-    /**
-     * Gets the access token for the given code in the current url.
-     * @param code Authorization code.
-     * @param {GetTokenOptions} options
-     * @param {string} options.clientId Application ID.
-     * @param {string} options.redirectUri The URL that you want to redirect the user logging in back to.
-     * @returns Tokens credentials.
-     */
     private async getTokenOnAuthenticate(code: string, options: GetTokenOptionsProvider) {
         const resTokens = await this.getTokens({
             code
@@ -184,10 +176,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return resTokens.credentials
     }
 
-    /**
-     * Generate URL for consent page landing.
-     * @returns URL to consent page.
-     */
     generateAuthUrl(options: IGoogleGenerateAuthUrlOptions = {}): string {
         const hd = options.hd
         const clientId = this.clientId
@@ -222,16 +210,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return this.generateAuthenticationUrl(params)
     }
 
-    /**
-    * Method used for parse the returned URL after an succes authentication in the consent page,
-    * then a request is made with part of the parameters extracted from that URL.
-    * @param currentUrl Is current request url, is usually obtained through the property url of Request object.
-    * @param options
-    * @param {GetTokenOptions} options
-    * @param {string} options.clientId Application ID.
-    * @param {string} options.redirectUri The URL that you want to redirect the user logging in back to.
-    * @return Authentication credentials and authenticated user information, this can varies depending of the "scope" parameter.
-    */
     authenticate(currentUrl: string, options?: GetTokenOptionsProvider) {
         const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)

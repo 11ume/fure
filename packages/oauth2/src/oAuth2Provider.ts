@@ -65,43 +65,12 @@ export interface OAuth2ProviderOptions {
 export type GetTokenOptionsProvider = Omit<GetTokenOptions, 'code' | 'codeVerifier'>
 
 export class FureOAuth2Provider extends FureProvider {
-    /**
-     * Anti XSRF token security status.
-     */
     readonly state: boolean
-
-    /**
-     * An array of scopes that the user granted access to.
-     * @link https://developers.google.com/identity/protocols/oauth2/scopes
-     */
     readonly scope: string[]
-
-    /**
-     * Anti XSRF token manager.
-     */
-    readonly #uniqueSessionTokenManager: IUniqueSessionTokenManager
-
-    /**
-     * Is a storage entity, for store and compare temporal values in different stages,
-     * like the unique session token value.
-     */
     readonly #store: IStorage
-
-    /**
-     * Authentication client for OAuth 2.0 protocol.
-     */
     readonly #oAuth2Client: OAuth2Client
-
-    /**
-     * Parsed URI, used to redirect the client after authentication is complete.
-     */
+    readonly #uniqueSessionTokenManager: IUniqueSessionTokenManager
     protected readonly parsedRedirectUrl: URL
-
-    /**
-     * @param {string} provider Authentication provider.
-     * @param {string} authenticationUrl Base URL for handle authentication.
-     * @param {string} tokenUrl Base URL for token retrieval.
-     */
     protected constructor({
         provider
         , tokenUrl
@@ -109,18 +78,14 @@ export class FureOAuth2Provider extends FureProvider {
         , clientId
         , clientSecret
         , redirectUri
-        , store = null
         , state
         , scope
+        , store = null
     }: OAuth2ProviderOptions) {
         super(provider)
-        this.#store = store
         this.state = state
         this.scope = scope
-        this.checkState()
-        this.checkStorage(this.state)
-        this.parsedRedirectUrl = new URL(redirectUri)
-        this.#uniqueSessionTokenManager = this.state ? new UniqueSessionTokenManager(this.#store) : null
+        this.#store = store
         this.#oAuth2Client = createOAuth2Client({
             clientId
             , clientSecret
@@ -128,58 +93,38 @@ export class FureOAuth2Provider extends FureProvider {
             , authenticationUrl
             , redirectUri
         })
+        this.#uniqueSessionTokenManager = this.state ? new UniqueSessionTokenManager(this.#store) : null
+        this.parsedRedirectUrl = new URL(redirectUri)
+        this.checkState()
+        this.checkStorage(this.state)
     }
 
-    /**
-     * Application ID.
-     */
     get clientId() {
         return this.#oAuth2Client.clientId
     }
 
-    /**
-     * Application unique secret key.
-     */
     get clientSecret() {
         return this.#oAuth2Client.clientSecret
     }
 
-    /**
-     * The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
-     */
     get redirectUri() {
         return this.#oAuth2Client.redirectUri
     }
 
-    /**
-     * Base URL for handle authentication.
-     */
     get authenticationUrl() {
         return this.#oAuth2Client.authenticationUrl
     }
 
-    /**
-    * Base URL for token retrieval.
-    */
     get tokenUrl() {
         return this.#oAuth2Client.tokenUrl
     }
 
-    /**
-     * Check state property constraints.
-     * If state property state is false, store property should not be provided.
-     */
     private checkState(): void {
         if (this.state === false && this.#store !== null) {
             throw this.error(500, 'Param status is false', 'If you pass a Storage entity, the state parameter must be true.')
         }
     }
 
-    /**
-     * Check store property constraints.
-     * If state property is true, an Storage object that implements the IStorage interface must be provided.
-     * @param state Anti XSRF token security status.
-     */
     private checkStorage(state: boolean): void {
         if (state) {
             if (this.#store === null) {
@@ -190,10 +135,6 @@ export class FureOAuth2Provider extends FureProvider {
         }
     }
 
-    /**
-     * Generate URL for consent page landing.
-     * @return URL to consent page.
-     */
     protected generateAuthenticationUrl(options: Partial<IGenerateAuthUrlOptions>): string {
         this.checkStorage(options.state)
         let state: string
@@ -223,14 +164,6 @@ export class FureOAuth2Provider extends FureProvider {
         throw this.error(500, `Required param ${id}`, `The ${id} param is missing, or it has been altered.`)
     }
 
-    /**
-     * Gets token credentials for the given code.
-     * @param {GetTokenOptions} options
-     * @param options.code Authorization code.
-     * @param options.clientId Application ID.
-     * @param options.redirectUri The URL that you want to redirect the user logging in back to.
-     * @param options.codeVerifier Is a high-entropy cryptographic random string using the unreserved characters.
-     */
     protected async getTokens(options: GetTokenOptions) {
         return this.#oAuth2Client.getTokens(options)
     }

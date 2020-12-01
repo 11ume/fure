@@ -28,43 +28,34 @@ export type GenerateAuthUrlOptions = {
 }
 
 export type GetTokenOptions = {
+    /**
+     * Authorization code.
+     */
     code: string
+
+    /**
+     * Application ID.
+     */
     clientId?: string
+
+    /**
+     * The URI that you want to redirect the user logging in back to.
+     */
     redirectUri?: string
+
+    /**
+     * Is a high-entropy cryptographic random string using the unreserved characters..
+     */
     codeVerifier?: string
 }
 
 export class OAuth2Client {
-    /**
-     * Application ID.
-     */
     readonly clientId: string
-
-    /**
-     * Application unique secret key.
-     */
     readonly clientSecret: string
-
-    /**
-     * The URL that you want to redirect the person logging in back to.
-     */
     readonly redirectUri: string
-
-    /**
-     * Base URL for token retrieval.
-     */
     readonly tokenUrl: string
-
-    /**
-     * Base URL for handle authentication.
-     */
     readonly authenticationUrl: string
-
-    /**
-     * Request agent abstraction interface.
-     */
     readonly #fetch: Fetch
-
     constructor({
         clientId
         , clientSecret
@@ -113,10 +104,6 @@ export class OAuth2Client {
         }
     }
 
-    /**
-     * Make http request to recibe the token of endpoint service.
-     * @param values request body values.
-     */
     private makeGetTokenRequest(values: TokenRequestValues): Promise<Response> {
         const cleanedValues = deleteEmptyValues(values)
         const body = querystring.stringify(cleanedValues)
@@ -129,14 +116,6 @@ export class OAuth2Client {
         })
     }
 
-    /**
-     * Gets token credentials for the given code.
-     * @param {GetTokenOptions} options
-     * @param options.code Authorization code.
-     * @param options.clientId Application ID.
-     * @param options.redirectUri The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
-     * @param options.codeVerifier Is a high-entropy cryptographic random string using the unreserved characters.
-     */
     async getTokens({
         code
         , clientId
@@ -157,10 +136,6 @@ export class OAuth2Client {
         return this.handleGetTokenResponse(res)
     }
 
-    /**
-     * Generate URL for consent page landing.
-     * @return URL to consent page.
-     */
     generateAuthenticationUrl(options: GenerateAuthUrlOptions, state: string): string {
         const params = this.prepareAuthUrlParams(options, state)
         const cleanedParams = deleteEmptyValues(params)
