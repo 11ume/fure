@@ -42,14 +42,11 @@ export class OAuth2Client {
 
     /**
      * Application unique secret key.
-     * This application secret key should never be included in client-side code or in binaries that
-     * could be decompiled. It is extremely important that it remains completely secret
-     * as it is the core of the security of your app and all the people using it.
      */
     readonly clientSecret: string
 
     /**
-     * The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
+     * The URL that you want to redirect the person logging in back to.
      */
     readonly redirectUri: string
 
@@ -118,7 +115,7 @@ export class OAuth2Client {
 
     /**
      * Make http request to recibe the token of endpoint service.
-     * @param values request body values
+     * @param values request body values.
      */
     private makeGetTokenRequest(values: TokenRequestValues): Promise<Response> {
         const cleanedValues = deleteEmptyValues(values)
@@ -161,8 +158,8 @@ export class OAuth2Client {
     }
 
     /**
-     * Generate URI for consent page landing.
-     * @return URI to consent page.
+     * Generate URL for consent page landing.
+     * @return URL to consent page.
      */
     generateAuthenticationUrl(options: GenerateAuthUrlOptions, state: string): string {
         const params = this.prepareAuthUrlParams(options, state)

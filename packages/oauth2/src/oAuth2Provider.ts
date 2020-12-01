@@ -21,26 +21,21 @@ export interface IGenerateAuthUrlOptions {
 
     /**
      * @required
-     * Determines where the API server redirects the user after the user
-     * completes the authorization flow. The value must exactly match one of the
-     * 'redirect_uri' values listed for your project in the API Console. Note that
-     * the http or https scheme, case, and trailing slash ('/') must all match.
-     * The value passed into the constructor will be used if not provided.
+     * Determines where the API server redirects the user after the user completes
+     * the authorization flow.
      */
     redirectUri?: string
 
     /**
      * @required
-     * A space-delimited list of scopes that identify the resources that
-     * your application could access on the user's behalf. Scopes enable your
-     * application to only request access to the resources that it needs while
-     * also enabling users to control the amount of access that they grant to your
-     * application.
+     * A space-delimited list of scopes that identify the resources that your application
+     * could access on the user's behalf. Scopes enable your application to only request access
+     * to the resources that it needs while also enabling users to control the amount of access that
+     * they grant to your application.
      */
     scope?: string[] | string
 
     /**
-     * @optional
      * @recommended
      * A string value for maintain state between the request and callback.
      * This parameter should be used for preventing Cross-site Request Forgery and will be passed
@@ -51,8 +46,8 @@ export interface IGenerateAuthUrlOptions {
 
 export interface IFureOAuth2Provider {
     generateAuthUrl(options: Partial<IGenerateAuthUrlOptions>): string
-    authenticate(url: string, options?: GetTokenOptions): any
-    revokeToken(): any
+    authenticate(url: string, options?: GetTokenOptions): Promise<any>
+    revokeToken(): boolean
 }
 
 export interface OAuth2ProviderOptions {
@@ -103,7 +98,6 @@ export class FureOAuth2Provider extends FureProvider {
     protected readonly parsedRedirectUrl: URL
 
     /**
-     * Creates an instance of FureOAuth2Provider.
      * @param {string} provider Authentication provider.
      * @param {string} authenticationUrl Base URL for handle authentication.
      * @param {string} tokenUrl Base URL for token retrieval.
@@ -126,10 +120,7 @@ export class FureOAuth2Provider extends FureProvider {
         this.checkState()
         this.checkStorage(this.state)
         this.parsedRedirectUrl = new URL(redirectUri)
-        this.#uniqueSessionTokenManager = null
-        if (this.state) {
-            this.#uniqueSessionTokenManager = new UniqueSessionTokenManager(this.#store)
-        }
+        this.#uniqueSessionTokenManager = this.state ? new UniqueSessionTokenManager(this.#store) : null
         this.#oAuth2Client = createOAuth2Client({
             clientId
             , clientSecret
@@ -180,7 +171,7 @@ export class FureOAuth2Provider extends FureProvider {
      */
     private checkState(): void {
         if (this.state === false && this.#store !== null) {
-            throw new Error('If you pass a Storage entity, the state parameter must be true')
+            throw this.error(500, 'Param status is false', 'If you pass a Storage entity, the state parameter must be true.')
         }
     }
 
@@ -192,16 +183,16 @@ export class FureOAuth2Provider extends FureProvider {
     private checkStorage(state: boolean): void {
         if (state) {
             if (this.#store === null) {
-                throw new Error('If the state parameter is true, you must pass a valid storage entity')
+                throw this.error(500, 'Required Storage entity', 'If the state parameter is true, you must pass a valid storage entity.')
             }
             if (isStore(this.#store)) return
-            throw new Error('Invalid storage, a valid storage object method must be provided')
+            throw this.error(500, 'Invalid storage entity', 'You must pass a valid storage entity.')
         }
     }
 
     /**
-     * Generate URI for consent page landing.
-     * @return URI to consent page.
+     * Generate URL for consent page landing.
+     * @return URL to consent page.
      */
     protected generateAuthenticationUrl(options: Partial<IGenerateAuthUrlOptions>): string {
         this.checkStorage(options.state)
@@ -218,8 +209,7 @@ export class FureOAuth2Provider extends FureProvider {
         return querystring.parse(urlWhioutQuestionMark)
     }
 
-    protected evaluateStateParam(parsedredirectUri: querystring.ParsedUrlQuery) {
-        const state = this.getRequiredParam('state', parsedredirectUri)
+    protected evaluateStateParam(state: string) {
         if (this.#uniqueSessionTokenManager.validate(state)) {
             this.#uniqueSessionTokenManager.remove(state)
             return
@@ -230,7 +220,7 @@ export class FureOAuth2Provider extends FureProvider {
     protected getRequiredParam(id: string, parsedredirectUri: querystring.ParsedUrlQuery): string {
         const param = getRequiredParam(id, parsedredirectUri[id])
         if (param) return param
-        throw new Error(`The ${id} param is missing, or it has been altered`)
+        throw this.error(500, `Required param ${id}`, `The ${id} param is missing, or it has been altered.`)
     }
 
     /**
@@ -238,7 +228,7 @@ export class FureOAuth2Provider extends FureProvider {
      * @param {GetTokenOptions} options
      * @param options.code Authorization code.
      * @param options.clientId Application ID.
-     * @param options.redirectUri The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
+     * @param options.redirectUri The URL that you want to redirect the user logging in back to.
      * @param options.codeVerifier Is a high-entropy cryptographic random string using the unreserved characters.
      */
     protected async getTokens(options: GetTokenOptions) {

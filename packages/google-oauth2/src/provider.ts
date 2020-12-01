@@ -1,4 +1,3 @@
-import querystring from 'querystring'
 import {
     IFureOAuth2Provider
     , IGenerateAuthUrlOptions
@@ -14,7 +13,6 @@ type CodeChallengeMethod = 'plain' | 'S256'
 
 interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
     /**
-     * @optional
      * @recommended
      * Indicates whether your application can refresh access tokens
      * when the user is not present at the browser. Valid parameter values are
@@ -28,7 +26,6 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
     accessType?: AccessType
 
     /**
-     * @optional
      * The hd (hosted domain) parameter streamlines the login process for G Suite
      * hosted accounts. By including the domain of the G Suite user (for example,
      * mycollege.edu), you can indicate that the account selection UI should be
@@ -43,7 +40,6 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
     hd?: string
 
     /**
-     * @optional
      * Enables applications to use incremental authorization to request
      * access to additional scopes in context. If you set this parameter's value
      * to true and the authorization request is granted, then the new access token
@@ -55,7 +51,6 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
     includeGrantedScopes?: boolean
 
     /**
-     * @optional
      * If your application knows which user is trying to authenticate,
      * it can use this parameter to provide a hint to the Google Authentication
      * Server. The server uses the hint to simplify the login flow either by
@@ -66,10 +61,8 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
     loginHint?: string
 
     /**
-     * @optional
      * A space-delimited, case-sensitive list of prompts to present the
-     * user. If you don't specify this parameter, the user will be prompted only
-     * the first time your app requests access.
+     * user. If you don't specify this parameter, the user will be prompted only the first time your app requests access.
      * Possible values are:
      * @value none - Donot display any authentication or consent screens. Must not be specified with other values.
      * @value consent - the user for consent.
@@ -78,7 +71,6 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
     prompt?: Prompt
 
     /**
-     * @optional
      * @recommended
      * Specifies what method was used to encode a 'code_verifier'
      * that will be used during authorization code exchange. This parameter must
@@ -90,7 +82,6 @@ interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
     codeChallengeMethod?: CodeChallengeMethod
 
     /**
-     * @optional
      * @recommended
      * Specifies an encoded 'code_verifier' that will be used as a
      * server-side challenge during authorization code exchange. This parameter
@@ -167,12 +158,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
 
     private checkParamChallange(codeChallengeMethod: string, codeChallenge: string): void {
         if (codeChallengeMethod && !codeChallenge) {
-            throw new Error('If a code_challenge_method is provided, code_challenge must be included.')
+            throw this.error(500, 'Required code_challenge param', 'If a code_challenge_method is provided, code_challenge must be included.')
         }
-    }
-
-    private getParamCode(callbackUrlQueryObj: querystring.ParsedUrlQuery) {
-        return this.getRequiredParam('code', callbackUrlQueryObj)
     }
 
     /**
@@ -180,7 +167,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
      * @param code Authorization code.
      * @param {GetTokenOptions} options
      * @param {string} options.clientId Application ID.
-     * @param {string} options.redirectUri The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
+     * @param {string} options.redirectUri The URL that you want to redirect the user logging in back to.
      * @returns Tokens credentials.
      */
     private async getTokenOnAuthenticate(code: string, options: GetTokenOptionsProvider) {
@@ -198,8 +185,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     }
 
     /**
-     * Generate URI for consent page landing.
-     * @returns URI to consent page.
+     * Generate URL for consent page landing.
+     * @returns URL to consent page.
      */
     generateAuthUrl(options: IGoogleGenerateAuthUrlOptions = {}): string {
         const hd = options.hd
@@ -240,18 +227,26 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     * then a request is made with part of the parameters extracted from that URL.
     * @param currentUrl Is current request url, is usually obtained through the property url of Request object.
     * @param options
+    * @param {GetTokenOptions} options
+    * @param {string} options.clientId Application ID.
+    * @param {string} options.redirectUri The URL that you want to redirect the user logging in back to.
     * @return Authentication credentials and authenticated user information, this can varies depending of the "scope" parameter.
     */
     authenticate(currentUrl: string, options?: GetTokenOptionsProvider) {
         const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
-        const code = this.getParamCode(callbackUrlQueryObj)
-        if (this.state) this.evaluateStateParam(callbackUrlQueryObj)
+        const code = this.getRequiredParam('code', callbackUrlQueryObj)
+        if (this.state) {
+            const state = this.getRequiredParam('state', callbackUrlQueryObj)
+            this.evaluateStateParam(state)
+        }
+
         return this.getTokenOnAuthenticate(code, options)
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    revokeToken() { }
+    revokeToken() {
+        return true
+    }
 
     // private getUserInfo() { }
 }
