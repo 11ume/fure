@@ -177,7 +177,9 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
 
     /**
      * Gets the access token for the given code in the current url.
-     * @param currentUrl Is current request url, is usually obtained through the property url of Request object.
+     * @param code Authorization code.
+     * @param options
+     * @returns Tokens credentials.
      */
     private async getTokenOnAuthenticate(code: string, options: GetTokenOptionsProvider) {
         const resTokens = await this.getTokens({
@@ -235,6 +237,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     * Method used for parse the returned URL after an succes authentication in the consent page,
     * then a request is made with part of the parameters extracted from that URL.
     * @param currentUrl Is current request url, is usually obtained through the property url of Request object.
+    * @param options
     * @return Authentication credentials and authenticated user information, this can varies depending of the "scope" parameter.
     */
     authenticate(currentUrl: string, options?: GetTokenOptionsProvider) {
