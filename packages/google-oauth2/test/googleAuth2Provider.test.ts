@@ -2,7 +2,6 @@ import test from 'ava'
 import nock from 'nock'
 import fureOAuth2GoogleProvider, { GoogleOAuth2ProviderOptions } from '..'
 import { FureError } from 'fure-provider/src/error'
-import { createStorage } from 'fure-storage'
 
 const createFureOAuth2GoogleProvider = (options?: Partial<GoogleOAuth2ProviderOptions>) => {
     const clientId = '1234'
@@ -18,8 +17,8 @@ const createFureOAuth2GoogleProvider = (options?: Partial<GoogleOAuth2ProviderOp
 
 test('create generic authentication URL', (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider()
-    const url = googleAauth2.generateAuthUrl()
-    const { searchParams, origin, pathname } = new URL(url)
+    const auth = googleAauth2.generateAuthUrl()
+    const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
     t.is(searchParams.get('prompt'), null)
@@ -39,14 +38,14 @@ test('create generic authentication URL whit uncommon params', (t) => {
     const codeChallenge = 'abcd'
     const codeChallengeMethod = 'plain'
 
-    const url = googleAauth2.generateAuthUrl({
+    const auth = googleAauth2.generateAuthUrl({
         hd
         , loginHint
         , codeChallenge
         , codeChallengeMethod
         , includeGrantedScopes
     })
-    const { searchParams, origin, pathname } = new URL(url)
+    const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
     t.is(searchParams.get('hd'), hd)
@@ -76,7 +75,7 @@ test('create generic authentication URL piorice params passed in the method', (t
     const codeChallenge = 'foobar'
     const includeGrantedScopes = false
 
-    const url = googleAauth2.generateAuthUrl({
+    const auth = googleAauth2.generateAuthUrl({
         prompt
         , scope
         , accessType
@@ -87,7 +86,7 @@ test('create generic authentication URL piorice params passed in the method', (t
         , includeGrantedScopes
     })
 
-    const { searchParams, origin, pathname } = new URL(url)
+    const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
     t.is(searchParams.get('prompt'), prompt)
@@ -100,13 +99,11 @@ test('create generic authentication URL piorice params passed in the method', (t
 })
 
 test('create generic authentication URL whit state enabled', (t) => {
-    const store = createStorage()
     const googleAauth2 = createFureOAuth2GoogleProvider({
         state: true
-        , store
     })
     const url = googleAauth2.generateAuthUrl()
-    const { searchParams, origin, pathname } = new URL(url)
+    const { searchParams, origin, pathname } = new URL(url.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
     t.true(typeof searchParams.get('state') === 'string')
@@ -137,7 +134,7 @@ test('get access token', async (t) => {
     })
         .post('/oauth2/v4/token')
         .reply(200, {
-            scope: scope
+            scope
             , id_token: idToken
             , token_type: tokenType
             , expires_in: expiresIn
@@ -177,3 +174,42 @@ test('get access token error', async (t) => {
     t.is(err.message, 'something has gone wrong')
     t.is(err.description, 'something has gone wrong description')
 })
+
+// necesito interceptar el body de la consulta emitida
+// test('get access token when pass params to method', async (t) => {
+//     const googleAauth2 = createFureOAuth2GoogleProvider()
+//     const { origin } = new URL(googleAauth2.tokenUrl)
+
+//     const scope = 'https://www.googleapis.com/auth/userinfo.email'
+//     const idToken = 'foobar'
+//     const tokenType = 'Bearer'
+//     const expiresIn = 3599
+//     const accessToken = 'abcd123'
+//     const refreshToken = 'abcd'
+
+//     const mock = nock(origin, {
+//         reqheaders: {
+//             'content-type': 'application/x-www-form-urlencoded'
+//         }
+//     })
+//         .post('/oauth2/v4/token')
+//         .reply(400, {
+//             scope
+//             , id_token: idToken
+//             , token_type: tokenType
+//             , expires_in: expiresIn
+//             , access_token: accessToken
+//             , refresh_token: refreshToken
+//         })
+
+//     const err: FureError = await t.throwsAsync(() => googleAauth2.authenticate('/auth?code=123', {
+//         redirectUri: 'http://foo/callback'
+//         , clientId: 'app'
+//     }))
+//     mock.done()
+
+//     t.is(err.statusCode, 400)
+//     t.is(err.message, 'something has gone wrong')
+//     t.is(err.description, 'something has gone wrong description')
+// })
+

@@ -1,6 +1,7 @@
 import {
     IFureOAuth2Provider
     , IGenerateOAuthUrlOptions
+    , GenerateAuthUrlResult
     , OAuth2ProviderOptions
     , GetTokenOptionsProvider
     , FureOAuth2Provider
@@ -128,7 +129,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         clientId
         , clientSecret
         , redirectUri
-        , store
         , state = false
         , scope = ['openid', 'email', 'profile']
         , prompt = undefined
@@ -146,7 +146,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , redirectUri
             , state
             , scope
-            , store
         })
 
         this.prompt = prompt
@@ -176,7 +175,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return resTokens.credentials
     }
 
-    generateAuthUrl(options: IGoogleGenerateOAuthUrlOptions = {}): string {
+    generateAuthUrl(options: IGoogleGenerateOAuthUrlOptions = {}): GenerateAuthUrlResult {
         const hd = options.hd
         const clientId = this.clientId
         const loginHint = options.loginHint
@@ -214,11 +213,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
         const code = this.getRequiredParam('code', callbackUrlQueryObj)
-        if (this.state) {
-            const state = this.getRequiredParam('state', callbackUrlQueryObj)
-            this.evaluateStateParam(state)
-        }
-
         return this.getTokenOnAuthenticate(code, options)
     }
 

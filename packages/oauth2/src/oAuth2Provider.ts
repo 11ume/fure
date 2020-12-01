@@ -1,8 +1,7 @@
 import querystring from 'querystring'
 import { FureProvider } from 'fure-provider'
-import { IStorage, isStore } from 'fure-storage'
 import { getRequiredParam } from 'fure-shared'
-import { UniqueSessionTokenManager, IUniqueSessionTokenManager } from 'fure-ustm'
+import { v4 as uuidv4 } from 'uuid'
 import createOAuth2Client, { OAuth2Client, GetTokenOptions } from 'fure-oauth2-client'
 export interface IGenerateOAuthUrlOptions {
     /**
@@ -41,8 +40,12 @@ export interface IGenerateOAuthUrlOptions {
     state?: boolean
 }
 
+export type GenerateAuthUrlResult = {
+    url: string
+    state?: string
+}
 export interface IFureOAuth2Provider {
-    generateAuthUrl(options: Partial<IGenerateOAuthUrlOptions>): string
+    generateAuthUrl(options: Partial<IGenerateOAuthUrlOptions>): GenerateAuthUrlResult
     authenticate(url: string, options?: GetTokenOptions): Promise<any>
     revokeToken(): boolean
 }
@@ -54,7 +57,6 @@ export interface OAuth2ProviderOptions {
     readonly clientId: string
     readonly clientSecret: string
     readonly redirectUri: string
-    readonly store?: IStorage
     readonly state?: boolean
     readonly scope?: string[]
 }
@@ -64,9 +66,7 @@ export type GetTokenOptionsProvider = Omit<GetTokenOptions, 'code' | 'codeVerifi
 export class FureOAuth2Provider extends FureProvider {
     readonly state: boolean
     readonly scope: string[]
-    readonly #store: IStorage
     readonly #oAuth2Client: OAuth2Client
-    readonly #uniqueSessionTokenManager: IUniqueSessionTokenManager
     protected readonly parsedRedirectUrl: URL
     protected constructor({
         provider
@@ -77,12 +77,10 @@ export class FureOAuth2Provider extends FureProvider {
         , redirectUri
         , state
         , scope
-        , store = null
     }: OAuth2ProviderOptions) {
         super(provider)
         this.state = state
         this.scope = scope
-        this.#store = store
         this.#oAuth2Client = createOAuth2Client({
             clientId
             , clientSecret
@@ -90,10 +88,7 @@ export class FureOAuth2Provider extends FureProvider {
             , authenticationUrl
             , redirectUri
         })
-        this.#uniqueSessionTokenManager = this.state ? new UniqueSessionTokenManager(this.#store) : null
         this.parsedRedirectUrl = new URL(redirectUri)
-        this.checkState()
-        this.checkStorage(this.state)
     }
 
     get clientId() {
@@ -116,30 +111,21 @@ export class FureOAuth2Provider extends FureProvider {
         return this.#oAuth2Client.tokenUrl
     }
 
-    private checkState(): void {
-        if (this.state === false && this.#store !== null) {
-            throw this.error(500, 'Param status is false', 'If you pass a Storage entity, the state parameter must be true.')
-        }
+    private createState(): string {
+        return uuidv4()
     }
 
-    private checkStorage(state: boolean): void {
-        if (state) {
-            if (this.#store === null) {
-                throw this.error(500, 'Required Storage entity', 'If the state parameter is true, you must pass a valid storage entity.')
-            }
-            if (isStore(this.#store)) return
-            throw this.error(500, 'Invalid storage entity', 'You must pass a valid storage entity.')
-        }
-    }
-
-    protected generateAuthenticationUrl(options: Partial<IGenerateOAuthUrlOptions>): string {
-        this.checkStorage(options.state)
-        let state: string
+    protected generateAuthenticationUrl(options: Partial<IGenerateOAuthUrlOptions>): GenerateAuthUrlResult {
+        let state: string = null
         if (options.state) {
-            state = this.#uniqueSessionTokenManager.create()
-            this.#uniqueSessionTokenManager.save(state)
+            state = this.createState()
         }
-        return this.#oAuth2Client.generateAuthenticationUrl(options, state)
+
+        const url = this.#oAuth2Client.generateAuthenticationUrl(options, state)
+        return {
+            url
+            , state
+        }
     }
 
     protected getQueryObjectFromUrl(currentUrl: URL): querystring.ParsedUrlQuery {
@@ -147,18 +133,10 @@ export class FureOAuth2Provider extends FureProvider {
         return querystring.parse(urlWhioutQuestionMark)
     }
 
-    protected evaluateStateParam(state: string) {
-        if (this.#uniqueSessionTokenManager.validate(state)) {
-            this.#uniqueSessionTokenManager.remove(state)
-            return
-        }
-        throw this.error(401, 'Wrong state parameter', 'The state parameter is missing or has been altered')
-    }
-
     protected getRequiredParam(id: string, parsedredirectUri: querystring.ParsedUrlQuery): string {
         const param = getRequiredParam(id, parsedredirectUri[id])
         if (param) return param
-        throw this.error(500, `Required param ${id}`, `The ${id} param is missing, or it has been altered.`)
+        throw this.error(401, `Required param ${id}`, `The ${id} param is missing, or it has been altered.`)
     }
 
     protected async getTokens(options: GetTokenOptions) {

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { IStorage } from 'fure-storage'
+import { IStore } from 'fure-storage'
 
 export interface IUniqueSessionTokenManager {
     create(): string
@@ -16,16 +16,16 @@ export interface IUniqueSessionTokenManager {
  * is the result of an authentication request initiated by your app.
  */
 export class UniqueSessionTokenManager implements IUniqueSessionTokenManager {
-    readonly #storage: IStorage
-    constructor(storage: IStorage) {
-        this.#storage = storage
+    readonly #store: IStore
+    constructor(store: IStore) {
+        this.#store = store
     }
 
     create = (): string => uuidv4()
-    save = (code: string): void => this.#storage.add(code)
-    remove = (code: string): boolean => this.#storage.remove(code)
+    save = (code: string): void => this.#store.add(code)
+    remove = (code: string): boolean => this.#store.remove(code)
     validate = (code: string): boolean => {
-        const found = this.#storage.get(code)
+        const found = this.#store.get(code)
         if (found?.value) return true
         return false
     }
