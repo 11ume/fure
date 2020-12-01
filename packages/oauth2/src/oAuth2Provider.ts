@@ -71,9 +71,7 @@ export type GetTokenOptionsProvider = Omit<GetTokenOptions, 'code' | 'codeVerifi
 
 export class FureOAuth2Provider extends FureProvider {
     /**
-     * Enable state security
-     * The state is a opaque string that is round-tripped in the protocol.
-     * The state can be useful for correlating requests and responses.
+     * Anti XSRF token security status.
      */
     readonly state: boolean
 
@@ -83,12 +81,9 @@ export class FureOAuth2Provider extends FureProvider {
      */
     readonly scope: string[]
 
-    /*
-     * An opaque string that is round-tripped in the protocol; that is to say, it is returned as a URI parameter in the Basic flow, and in the URI #fragment
-     * identifier in the Implicit flow.
-     * The state can be useful for correlating requests and responses.
-     * Because your redirect_uri can be guessed, using a state value can increase your assurance that an incoming connection is the result of an authentication request initiated by your app. If you generate a random string or encode the hash of some client state (e.g., a cookie) in this state variable, you can validate the response to additionally ensure that the request and response originated in the same browser. This provides protection against attacks such as cross-site request forgery.
-     **/
+    /**
+     * Anti XSRF token manager.
+     */
     readonly #uniqueSessionTokenManager: IUniqueSessionTokenManager
 
     /**
@@ -192,6 +187,7 @@ export class FureOAuth2Provider extends FureProvider {
     /**
      * Check store property constraints.
      * If state property is true, an Storage object that implements the IStorage interface must be provided.
+     * @param state Anti XSRF token security status.
      */
     private checkStorage(state: boolean): void {
         if (state) {
@@ -239,6 +235,11 @@ export class FureOAuth2Provider extends FureProvider {
 
     /**
      * Gets token credentials for the given code.
+     * @param {GetTokenOptions} options
+     * @param options.code Authorization code.
+     * @param options.clientId Application ID.
+     * @param options.redirectUri The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
+     * @param options.codeVerifier Is a high-entropy cryptographic random string using the unreserved characters.
      */
     protected async getTokens(options: GetTokenOptions) {
         return this.#oAuth2Client.getTokens(options)

@@ -8,6 +8,13 @@ export interface IUniqueSessionTokenManager {
     remove(code: string): boolean
 }
 
+/**
+ * Anti XSRF token manager.
+ * That is used for prevent an request forgery attack, the unique session token is a string of 30 or so characters constructed using a high-quality random-number generator,
+ * that holds state between your app and the user's client. It is returned as a URI parameter in the Basic flow, and in the URI #fragment identifier in the Implicit flow.
+ * Because your redirect_uri can be guessed, using an unique session token value can increase your assurance that an incoming connection
+ * is the result of an authentication request initiated by your app.
+ */
 export class UniqueSessionTokenManager implements IUniqueSessionTokenManager {
     readonly #storage: IStorage
     constructor(storage: IStorage) {

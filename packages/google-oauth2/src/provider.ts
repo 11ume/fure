@@ -178,13 +178,15 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     /**
      * Gets the access token for the given code in the current url.
      * @param code Authorization code.
-     * @param options
+     * @param {GetTokenOptions} options
+     * @param {string} options.clientId Application ID.
+     * @param {string} options.redirectUri The URL that you want to redirect the person logging in back to. This URL will capture the response from the Login Dialog.
      * @returns Tokens credentials.
      */
     private async getTokenOnAuthenticate(code: string, options: GetTokenOptionsProvider) {
         const resTokens = await this.getTokens({
-            ...options
-            , code
+            code
+            , ...options
         })
 
         if (resTokens.error) {
