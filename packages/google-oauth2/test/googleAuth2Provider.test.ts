@@ -6,7 +6,7 @@ import { CodeChallengeMethod } from 'fure-oauth2'
 import { AccessType } from '../src/provider'
 
 const createFureOAuth2GoogleProvider = (options?: Partial<GoogleOAuth2ProviderOptions>) => {
-    const clientId = '1234'
+    const clientId = 'foobar'
     const clientSecret = 'abcd'
     const redirectUri = 'http://localhost:3000/auth/google/callback'
     return fureOAuth2GoogleProvider({
@@ -23,6 +23,7 @@ test('create generic authentication URL', (t) => {
     const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
+    t.is(searchParams.get('client_id'), 'foobar')
     t.is(searchParams.get('prompt'), null)
     t.is(searchParams.get('response_type'), googleAauth2.responseType)
     t.is(searchParams.get('access_type'), googleAauth2.accessType)
@@ -72,8 +73,10 @@ test('create generic authentication URL piorice params passed in the method', (t
         , includeGrantedScopes: true
         , state: true
         , nonce: true
+        , clientId: '1234'
     })
 
+    const clientId = '5678'
     const prompt = Prompt.none
     const accessType = AccessType.online
     const redirectUri = 'http://localhost:3000/callback'
@@ -90,6 +93,7 @@ test('create generic authentication URL piorice params passed in the method', (t
         , nonce
         , prompt
         , scope
+        , clientId
         , accessType
         , redirectUri
         , responseType
@@ -99,11 +103,11 @@ test('create generic authentication URL piorice params passed in the method', (t
     })
 
     const { searchParams, origin, pathname } = new URL(auth.url)
-
     t.is(origin + pathname, googleAauth2.authenticationUrl)
     t.is(searchParams.get('state'), null)
     t.is(searchParams.get('nonce'), null)
     t.is(searchParams.get('prompt'), prompt)
+    t.is(searchParams.get('client_id'), '5678')
     t.is(searchParams.get('access_type'), accessType)
     t.is(searchParams.get('redirect_uri'), redirectUri)
     t.is(searchParams.get('response_type'), responseType)
@@ -116,8 +120,8 @@ test('create generic authentication URL whit state enabled', (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider({
         state: true
     })
-    const url = googleAauth2.generateAuth()
-    const { searchParams, origin, pathname } = new URL(url.url)
+    const auth = googleAauth2.generateAuth()
+    const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
     t.true(typeof searchParams.get('state') === 'string')

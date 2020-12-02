@@ -7,6 +7,11 @@ import createOAuth2Client, { OAuth2Client, GetTokenOptions } from 'fure-oauth2-c
 
 export interface IGenerateAuthParams {
     /**
+     * Application ID.
+     */
+    clientId?: string
+
+    /**
      * @required
      * Determines whether the response data included when the redirect back to the app occurs is in URL parameters or fragments. See the Confirming Identity section to choose which type your app should use.
      * This can be one of:

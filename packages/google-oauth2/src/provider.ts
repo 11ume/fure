@@ -186,20 +186,21 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     }
 
     private prepareAuthParams(options: IGoogleGenerateAuthParams = {}): Partial<IGoogleGenerateAuthParams> {
-        const hd = options.hd
-        const clientId = this.clientId
-        const loginHint = options.loginHint
-        const codeChallenge = options.codeChallenge
-
-        const state = options.state ?? this.state
-        const scope = options.scope ?? this.scope
-        const nonce = options.nonce ?? this.nonce
-        const prompt = options.prompt ?? this.prompt
-        const accessType = options.accessType ?? this.accessType
-        const redirectUri = options.redirectUri ?? this.redirectUri
-        const responseType = options.responseType ?? this.responseType
-        const codeChallengeMethod = options.codeChallengeMethod ?? this.codeChallengeMethod
-        const includeGrantedScopes = options.includeGrantedScopes ?? this.includeGrantedScopes
+        const {
+            state = this.state
+            , scope = this.scope
+            , nonce = this.nonce
+            , prompt = this.prompt
+            , clientId = this.clientId
+            , accessType = this.accessType
+            , redirectUri = this.redirectUri
+            , responseType = this.responseType
+            , codeChallengeMethod = this.codeChallengeMethod
+            , includeGrantedScopes = this.includeGrantedScopes
+            , hd = null
+            , loginHint = null
+            , codeChallenge = null
+        } = options
 
         const params = {
             hd
