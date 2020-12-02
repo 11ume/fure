@@ -72,7 +72,7 @@ export class OAuth2Client {
         this.#fetch = fetch
     }
 
-    private prepareAuthUrlParams(options: GenerateAuthUrlParams, state: string): GenerateAuthUrlParams {
+    private prepareAuthUrlParams(options: GenerateAuthUrlParams, state: string, nonce: string): GenerateAuthUrlParams {
         let scope = options.scope
         if (options.scope instanceof Array) {
             scope = options.scope.join(' ')
@@ -80,8 +80,9 @@ export class OAuth2Client {
 
         return {
             ...options
-            , scope
             , state
+            , nonce
+            , scope
         }
     }
 
@@ -136,8 +137,8 @@ export class OAuth2Client {
         return this.handleGetTokenResponse(res)
     }
 
-    generateAuthenticationUrl(params: GenerateAuthUrlParams, state: string): string {
-        const preparedParams = this.prepareAuthUrlParams(params, state)
+    generateAuthenticationUrl(params: GenerateAuthUrlParams, state: string, nonce: string): string {
+        const preparedParams = this.prepareAuthUrlParams(params, state, nonce)
         const cleanedParams = deleteEmptyValues(preparedParams)
         const queryParams = querystring.stringify(cleanedParams)
         return `${this.authenticationUrl}?${queryParams}`

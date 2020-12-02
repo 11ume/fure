@@ -1,9 +1,9 @@
 import querystring from 'querystring'
+import { randomBytes } from 'crypto'
 import { FureProvider } from 'fure-provider'
 import { getRequiredParam } from 'fure-shared'
 import { v4 as uuidv4 } from 'uuid'
 import createOAuth2Client, { OAuth2Client, GetTokenOptions } from 'fure-oauth2-client'
-
 export interface IGenerateAuthParams {
     /**
      * @required
@@ -137,16 +137,18 @@ export class FureOAuth2Provider extends FureProvider {
         return this.#oAuth2Client.tokenUrl
     }
 
-    private createState(): string {
-        return uuidv4()
+    protected generateAuthStateParam(state: boolean): string {
+        const uuid = uuidv4()
+        return state ? uuid : null
     }
 
-    protected generateAuthStateParam(params: Partial<IGenerateAuthParams>) {
-        return params.state ? this.createState() : null
+    protected generateAuthNonceParam(nonce: boolean): string {
+        const str = randomBytes(16).toString('hex') // 32 bytes
+        return nonce ? str : null
     }
 
-    protected generateAuthenticationUrl(params: Partial<IGenerateAuthParams>, state: string): string {
-        return this.#oAuth2Client.generateAuthenticationUrl(params, state)
+    protected generateAuthenticationUrl(params: Partial<IGenerateAuthParams>, state: string, nonce: string): string {
+        return this.#oAuth2Client.generateAuthenticationUrl(params, state, nonce)
     }
 
     protected getQueryObjectFromUrl(currentUrl: URL): querystring.ParsedUrlQuery {

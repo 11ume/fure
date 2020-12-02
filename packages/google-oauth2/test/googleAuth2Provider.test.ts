@@ -1,7 +1,9 @@
 import test from 'ava'
 import nock from 'nock'
-import fureOAuth2GoogleProvider, { GoogleOAuth2ProviderOptions } from '..'
+import fureOAuth2GoogleProvider, { GoogleOAuth2ProviderOptions, ResponseType, Prompt } from '..'
 import { FureError } from 'fure-provider/src/error'
+import { CodeChallengeMethod } from 'fure-oauth2'
+import { AccessType } from '../src/provider'
 
 const createFureOAuth2GoogleProvider = (options?: Partial<GoogleOAuth2ProviderOptions>) => {
     const clientId = '1234'
@@ -33,13 +35,15 @@ test('create generic authentication URL whit uncommon params', (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider()
 
     const hd = '*'
+    const nonce = true
     const includeGrantedScopes = true
     const loginHint = 'asd@asd.com'
     const codeChallenge = 'abcd'
-    const codeChallengeMethod = 'plain'
+    const codeChallengeMethod = CodeChallengeMethod.plain
 
     const auth = googleAauth2.generateAuth({
         hd
+        , nonce
         , loginHint
         , codeChallenge
         , codeChallengeMethod
@@ -48,6 +52,8 @@ test('create generic authentication URL whit uncommon params', (t) => {
     const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
+    t.true(typeof searchParams.get('nonce') === 'string')
+    t.is(searchParams.get('nonce').length, 32)
     t.is(searchParams.get('hd'), hd)
     t.is(searchParams.get('include_granted_scopes'), String(includeGrantedScopes))
     t.is(searchParams.get('login_hint'), loginHint)
@@ -57,26 +63,32 @@ test('create generic authentication URL whit uncommon params', (t) => {
 
 test('create generic authentication URL piorice params passed in the method', (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider({
-        prompt: 'consent'
-        , accessType: 'offline'
-        , responseType: 'code'
+        prompt: Prompt.consent
+        , accessType: AccessType.offline
+        , responseType: ResponseType.code
         , redirectUri: 'http://localhost:4000/callback'
         , scope: ['openid', 'email']
-        , codeChallengeMethod: 'S256'
+        , codeChallengeMethod: CodeChallengeMethod.plain
         , includeGrantedScopes: true
+        , state: true
+        , nonce: true
     })
 
-    const prompt = 'none'
-    const accessType = 'online'
+    const prompt = Prompt.none
+    const accessType = AccessType.online
     const redirectUri = 'http://localhost:3000/callback'
-    const responseType = 'code'
+    const responseType = ResponseType.codeToken
     const scope = ['foo', 'bar']
-    const codeChallengeMethod = 'plain'
+    const codeChallengeMethod = CodeChallengeMethod.S256
     const codeChallenge = 'foobar'
     const includeGrantedScopes = false
+    const state = false
+    const nonce = false
 
     const auth = googleAauth2.generateAuth({
-        prompt
+        state
+        , nonce
+        , prompt
         , scope
         , accessType
         , redirectUri
@@ -89,6 +101,8 @@ test('create generic authentication URL piorice params passed in the method', (t
     const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
+    t.is(searchParams.get('state'), null)
+    t.is(searchParams.get('nonce'), null)
     t.is(searchParams.get('prompt'), prompt)
     t.is(searchParams.get('access_type'), accessType)
     t.is(searchParams.get('redirect_uri'), redirectUri)
