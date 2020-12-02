@@ -5,12 +5,24 @@ import {
     , OAuth2ProviderOptions
     , GetTokenOptionsProvider
     , FureOAuth2Provider
+    , CodeChallengeMethod
 } from 'fure-oauth2'
 
-type Prompt = 'none' | 'consent' | 'select_account'
-type AccessType = 'offline' | 'online'
-type ResponseType = 'code' | 'code token'
-type CodeChallengeMethod = 'plain' | 'S256'
+export enum Prompt {
+    node = 'none'
+    , consent = 'consent'
+    , selectAccount = 'select_account'
+}
+
+export enum AccessType {
+    offline = 'offline'
+    , online = 'online'
+}
+
+export enum ResponseType {
+    code = 'code'
+    , codeToken = 'code_token'
+}
 
 interface IGoogleGenerateAuthParams extends IGenerateAuthParams {
     /**
@@ -70,25 +82,6 @@ interface IGoogleGenerateAuthParams extends IGenerateAuthParams {
      * @value select_account - Prompt the user to select an account.
      */
     prompt?: Prompt
-
-    /**
-     * @recommended
-     * Specifies what method was used to encode a 'code_verifier'
-     * that will be used during authorization code exchange. This parameter must
-     * be used with the 'code_challenge' parameter. The value of the
-     * 'code_challenge_method' defaults to "plain" if not present in the request
-     * that includes a 'code_challenge'. The only supported values for this
-     * parameter are "S256" or "plain".
-     */
-    codeChallengeMethod?: CodeChallengeMethod
-
-    /**
-     * @recommended
-     * Specifies an encoded 'code_verifier' that will be used as a
-     * server-side challenge during authorization code exchange. This parameter
-     * must be used with the 'code_challenge' parameter described above.
-     */
-    codeChallenge?: string
 }
 
 export interface GoogleOAuth2ProviderSelfOptions extends OAuth2ProviderOptions {
@@ -132,9 +125,9 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , state = false
         , scope = ['openid', 'email', 'profile']
         , prompt = undefined
-        , accessType = 'offline'
-        , responseType = 'code'
-        , codeChallengeMethod = 'S256'
+        , accessType = AccessType.offline
+        , responseType = ResponseType.code
+        , codeChallengeMethod = CodeChallengeMethod.S256
         , includeGrantedScopes = false
     }: GoogleOAuth2ProviderOptions) {
         super({
