@@ -4,6 +4,7 @@ import { FureProvider } from 'fure-provider'
 import { getRequiredParam } from 'fure-shared'
 import { v4 as uuidv4 } from 'uuid'
 import createOAuth2Client, { OAuth2Client, GetTokenOptions } from 'fure-oauth2-client'
+
 export interface IGenerateAuthParams {
     /**
      * @required

@@ -118,6 +118,14 @@ const GOOGLE_TOKEN_URL = 'https://www.googleapis.com/oauth2/v4/token'
  */
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 
+/**
+ * A space-delimited list of scopes that identify the resources that your application
+ * could access on the user's behalf. Scopes enable your application to only request access
+ * to the resources that it needs while also enabling users to control the amount of access that
+ * they grant to your application.
+ */
+const GOOGOLE_SCOPE = ['openid', 'profile', 'email']
+
 export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider {
     readonly nonce: boolean
     readonly prompt: Prompt
@@ -130,9 +138,9 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , clientSecret
         , redirectUri
         , state = false
-        , scope = ['openid', 'profile', 'email']
+        , scope = GOOGOLE_SCOPE
         , nonce = false
-        , prompt = undefined
+        , prompt = null
         , accessType = AccessType.offline
         , responseType = ResponseType.code
         , codeChallengeMethod = null

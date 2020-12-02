@@ -1,12 +1,12 @@
 import querystring from 'querystring'
 import { Fetch, Response } from './fetch'
-import { deleteEmptyValues } from 'fure-shared'
+import { deleteFalsyValues } from 'fure-shared'
 import { AuthTokenResponse, TokenCredentials, TokenRequestValues } from './credentials'
 
 type ResponseError = {
     status: number
-    , message: string
-    , description: string
+    message: string
+    description: string
 }
 
 type GetTokenResponse = {
@@ -14,13 +14,8 @@ type GetTokenResponse = {
     credentials: Partial<TokenCredentials>
 }
 
-export interface OAuth2ClientOptions {
-    readonly clientId: string
-    readonly clientSecret: string
-    readonly redirectUri: string
-    readonly authenticationUrl: string
-    readonly tokenUrl: string
-    readonly fetch?: Fetch
+enum GrantTypes {
+    authorizationCode = 'authorization_code'
 }
 
 export type GenerateAuthUrlParams = {
@@ -47,6 +42,15 @@ export type GetTokenOptions = {
      * Is a high-entropy cryptographic random string using the unreserved characters..
      */
     codeVerifier?: string
+}
+
+export interface OAuth2ClientOptions {
+    readonly clientId: string
+    readonly clientSecret: string
+    readonly redirectUri: string
+    readonly authenticationUrl: string
+    readonly tokenUrl: string
+    readonly fetch?: Fetch
 }
 
 export class OAuth2Client {
@@ -95,18 +99,21 @@ export class OAuth2Client {
             }
         }
 
+        const status = res.status
+        const message = body.error ?? 'Get token response error.'
+        const description = body.error_description ?? 'No description.'
         return {
             credentials: null
             , error: {
-                status: res.status
-                , message: body.error
-                , description: body.error_description
+                status
+                , message
+                , description
             }
         }
     }
 
     private makeGetTokenRequest(values: TokenRequestValues): Promise<Response> {
-        const cleanedValues = deleteEmptyValues(values)
+        const cleanedValues = deleteFalsyValues(values)
         const body = querystring.stringify(cleanedValues)
         return this.#fetch(this.tokenUrl, {
             body
@@ -121,12 +128,11 @@ export class OAuth2Client {
         code
         , clientId
         , redirectUri
-        , codeVerifier = undefined
+        , codeVerifier = null
     }: GetTokenOptions): Promise<GetTokenResponse> {
-        const grantType = 'authorization_code'
         const values = {
             code
-            , grant_type: grantType
+            , grant_type: GrantTypes.authorizationCode
             , code_verifier: codeVerifier
             , client_secret: this.clientSecret
             , client_id: clientId ?? this.clientId
@@ -139,7 +145,7 @@ export class OAuth2Client {
 
     generateAuthenticationUrl(params: GenerateAuthUrlParams, state: string, nonce: string): string {
         const preparedParams = this.prepareAuthUrlParams(params, state, nonce)
-        const cleanedParams = deleteEmptyValues(preparedParams)
+        const cleanedParams = deleteFalsyValues(preparedParams)
         const queryParams = querystring.stringify(cleanedParams)
         return `${this.authenticationUrl}?${queryParams}`
     }

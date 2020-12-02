@@ -6,7 +6,7 @@ export const getRequiredParam = (id: string, params: string | string[]) => {
     throw new Error(`Param "${id}" is required`)
 }
 
-export const deleteEmptyValues = <T>(params: T): Partial<T> => Object
+export const deleteFalsyValues = <T>(params: T): Partial<T> => Object
     .entries(params)
     .reduce((pv, [key, value]) => {
         if (value || value === false) {

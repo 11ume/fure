@@ -69,12 +69,12 @@ export interface TokenCredentialsError {
   /**
    * Error message.
    */
-  error: string
+  error?: string
 
   /**
    * Error description message.
    */
-  error_description: string
+  error_description?: string
 }
 
 export interface AuthTokenResponse extends TokenCredentials, TokenCredentialsError { }
