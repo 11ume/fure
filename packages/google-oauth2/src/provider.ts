@@ -229,6 +229,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return {
             url
             , state
+            , nonce
         }
     }
 

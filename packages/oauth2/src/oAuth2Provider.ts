@@ -68,7 +68,8 @@ export enum CodeChallengeMethod {
 
 export type GenerateAuthResult = {
     url: string
-    state?: string
+    state?: string | null
+    nonce?: string | null
 }
 
 export interface IFureOAuth2Provider {
