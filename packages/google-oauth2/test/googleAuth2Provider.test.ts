@@ -39,7 +39,7 @@ test('create generic authentication URL whit uncommon params', (t) => {
     const nonce = true
     const includeGrantedScopes = true
     const loginHint = 'asd@asd.com'
-    const codeChallenge = 'abcd'
+    const codeChallenge = true
     const codeChallengeMethod = CodeChallengeMethod.plain
 
     const auth = googleAauth2.generateAuth({
@@ -56,10 +56,10 @@ test('create generic authentication URL whit uncommon params', (t) => {
     t.true(typeof searchParams.get('nonce') === 'string')
     t.is(searchParams.get('nonce').length, 32)
     t.is(searchParams.get('hd'), hd)
-    t.is(searchParams.get('include_granted_scopes'), String(includeGrantedScopes))
     t.is(searchParams.get('login_hint'), loginHint)
-    t.is(searchParams.get('code_challenge'), codeChallenge)
     t.is(searchParams.get('code_challenge_method'), codeChallengeMethod)
+    t.true(searchParams.get('include_granted_scopes'), String(includeGrantedScopes))
+    t.true(searchParams.get('code_challenge'), String(codeChallenge))
 })
 
 test('create generic authentication URL piorice params passed in the method', (t) => {
@@ -69,6 +69,7 @@ test('create generic authentication URL piorice params passed in the method', (t
         , responseType: ResponseType.code
         , redirectUri: 'http://localhost:4000/callback'
         , scope: ['openid', 'email']
+        , codeChallenge: false
         , codeChallengeMethod: CodeChallengeMethod.plain
         , includeGrantedScopes: true
         , state: true
@@ -83,7 +84,7 @@ test('create generic authentication URL piorice params passed in the method', (t
     const responseType = ResponseType.codeToken
     const scope = ['foo', 'bar']
     const codeChallengeMethod = CodeChallengeMethod.S256
-    const codeChallenge = 'foobar'
+    const codeChallenge = true
     const includeGrantedScopes = false
     const state = false
     const nonce = false
@@ -104,6 +105,7 @@ test('create generic authentication URL piorice params passed in the method', (t
 
     const { searchParams, origin, pathname } = new URL(auth.url)
     t.is(origin + pathname, googleAauth2.authenticationUrl)
+
     t.is(searchParams.get('state'), null)
     t.is(searchParams.get('nonce'), null)
     t.is(searchParams.get('prompt'), prompt)
@@ -111,9 +113,10 @@ test('create generic authentication URL piorice params passed in the method', (t
     t.is(searchParams.get('access_type'), accessType)
     t.is(searchParams.get('redirect_uri'), redirectUri)
     t.is(searchParams.get('response_type'), responseType)
-    t.is(searchParams.get('include_granted_scopes'), String(includeGrantedScopes))
-    t.is(searchParams.get('code_challenge_method'), codeChallengeMethod)
     t.is(searchParams.get('scope'), scope.join(' '))
+    t.is(searchParams.get('code_challenge_method'), codeChallengeMethod)
+    t.true(searchParams.get('include_granted_scopes'), String(includeGrantedScopes))
+    t.true(searchParams.get('code_challenge'), String(codeChallenge))
 })
 
 test('create generic authentication URL whit state enabled', (t) => {

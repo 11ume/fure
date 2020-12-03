@@ -45,25 +45,6 @@ export interface IGenerateAuthParams {
      * back to you, unchanged, in your redirect URI.
      */
     state?: boolean
-
-    /**
-    * @recommended
-    * Specifies what method was used to encode a 'code_verifier'
-    * that will be used during authorization code exchange. This parameter must
-    * be used with the 'code_challenge' parameter. The value of the
-    * 'code_challenge_method' defaults to "plain" if not present in the request
-    * that includes a 'code_challenge'. The only supported values for this
-    * parameter are "S256" or "plain".
-    */
-    codeChallengeMethod?: CodeChallengeMethod
-
-    /**
-     * @recommended
-     * Specifies an encoded 'code_verifier' that will be used as a
-     * server-side challenge during authorization code exchange. This parameter
-     * must be used with the 'code_challenge' parameter described above.
-     */
-    codeChallenge?: string
 }
 
 export enum CodeChallengeMethod {
