@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import querystring from 'querystring'
 import { TokenRequestValues, TokenCredentials, TokenCredentialsError } from './credentials'
 import { deleteFalsyValues } from 'fure-shared'
@@ -28,8 +29,7 @@ export enum ResponseType {
 }
 
 export enum CodeChallengeMethod {
-    plain = 'plain'
-    , S256 = 'S256'
+    S256 = 'S256'
 }
 
 export interface GoogleOAuth2ProviderSelfOptions extends OAuth2ProviderOptions {
@@ -63,7 +63,7 @@ interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
      * first time that your application exchanges an authorization code for
      * tokens.
      */
-    accessType?: AccessType
+    access_type?: AccessType
 
     /**
      * The hd (hosted domain) parameter streamlines the login process for G Suite
@@ -88,7 +88,7 @@ interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
      * See the incremental authorization section.
      * @link https://developers.google.com/identity/protocols/oauth2/web-server#incrementalAuth
      */
-    includeGrantedScopes?: boolean
+    include_granted_scopes?: boolean
 
     /**
      * If your application knows which user is trying to authenticate,
@@ -98,7 +98,7 @@ interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
      * appropriate multi-login session. Set the parameter value to an email
      * address or sub identifier, which is equivalent to the user's Google ID.
      */
-    loginHint?: string
+    login_hint?: string
 
     /**
      * A space-delimited, case-sensitive list of prompts to present the
@@ -119,7 +119,7 @@ interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
      * that includes a 'code_challenge'. The only supported values for this
      * parameter are "S256" or "plain".
      */
-    codeChallengeMethod?: CodeChallengeMethod
+    code_challenge_method?: CodeChallengeMethod
 
     /**
      * @recommended
@@ -127,7 +127,7 @@ interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
      * server-side challenge during authorization code exchange. This parameter
      * must be used with the 'code_challenge' parameter described above.
      */
-    codeChallenge?: boolean
+    code_challenge?: boolean
 }
 
 type AuthTokenResponse = TokenCredentials & TokenCredentialsError
@@ -210,8 +210,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
 
     generateAuth(params: IGoogleGenerateAuthOptions = {}): GenerateAuthResult {
         const preparedParams = this.prepareAuthParams(params)
-        const state = this.generateAuthStateParam(this.state || preparedParams.state)
-        const { codeVerifier, codeChallenge } = this.generatePkce(this.codeChallenge || preparedParams.codeChallenge)
+        const state = this.generateAuthStateParam(preparedParams.state)
+        const { codeVerifier, codeChallenge } = this.generatePkce(preparedParams.code_challenge)
         const url = this.generateAuthenticationUrl(preparedParams, state, codeChallenge)
 
         return {
@@ -255,33 +255,31 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , state = this.state
             , scope = this.scope
             , prompt = this.prompt
-            , clientId = this.clientId
-            , accessType = this.accessType
-            , redirectUri = this.redirectUri
-            , responseType = this.responseType
-            , codeChallenge = this.codeChallenge
-            , codeChallengeMethod = this.codeChallengeMethod
-            , includeGrantedScopes = this.includeGrantedScopes
-            , loginHint
+            , client_id = this.clientId
+            , login_hint
+            , access_type = this.accessType
+            , redirect_uri = this.redirectUri
+            , response_type = this.responseType
+            , code_challenge = this.codeChallenge
+            , code_challenge_method = this.codeChallengeMethod
+            , include_granted_scopes = this.includeGrantedScopes
         } = options
 
-        const params = {
+        this.checkParamChallange(code_challenge_method, code_challenge)
+        return {
             hd
             , state
             , scope
             , prompt
-            , client_id: clientId
-            , login_hint: loginHint
-            , access_type: accessType
-            , redirect_uri: redirectUri
-            , response_type: responseType
-            , code_challenge: codeChallenge
-            , code_challenge_method: codeChallengeMethod
-            , include_granted_scopes: includeGrantedScopes
+            , client_id
+            , login_hint
+            , access_type
+            , redirect_uri
+            , response_type
+            , code_challenge
+            , code_challenge_method
+            , include_granted_scopes
         }
-
-        this.checkParamChallange(params.code_challenge_method, params.code_challenge)
-        return params
     }
 
     private async getTokens(code: string, {

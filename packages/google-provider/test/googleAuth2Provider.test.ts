@@ -38,14 +38,14 @@ test('create generic authentication URL whit uncommon params', (t) => {
     const includeGrantedScopes = true
     const loginHint = 'asd@asd.com'
     const codeChallenge = true
-    const codeChallengeMethod = CodeChallengeMethod.plain
+    const codeChallengeMethod = CodeChallengeMethod.S256
 
     const auth = googleAauth2.generateAuth({
         hd
-        , loginHint
-        , codeChallenge
-        , codeChallengeMethod
-        , includeGrantedScopes
+        , login_hint: loginHint
+        , code_challenge: codeChallenge
+        , code_challenge_method: codeChallengeMethod
+        , include_granted_scopes: includeGrantedScopes
     })
     const { searchParams, origin, pathname } = new URL(auth.url)
 
@@ -54,7 +54,7 @@ test('create generic authentication URL whit uncommon params', (t) => {
     t.is(searchParams.get('login_hint'), loginHint)
     t.is(searchParams.get('code_challenge_method'), codeChallengeMethod)
     t.is(searchParams.get('include_granted_scopes'), String(includeGrantedScopes))
-    t.is(searchParams.get('code_challenge'), String(codeChallenge))
+    t.is(searchParams.get('code_challenge').length, 43)
 })
 
 test('create generic authentication URL piorice params passed in the method', (t) => {
@@ -64,8 +64,8 @@ test('create generic authentication URL piorice params passed in the method', (t
         , responseType: ResponseType.code
         , redirectUri: 'http://localhost:4000/callback'
         , scope: ['openid', 'email']
-        , codeChallenge: false
-        , codeChallengeMethod: CodeChallengeMethod.plain
+        , codeChallenge: true
+        , codeChallengeMethod: CodeChallengeMethod.S256
         , includeGrantedScopes: true
         , state: true
         , clientId: '1234'
@@ -77,8 +77,8 @@ test('create generic authentication URL piorice params passed in the method', (t
     const redirectUri = 'http://localhost:3000/callback'
     const responseType = ResponseType.codeToken
     const scope = ['foo', 'bar']
-    const codeChallengeMethod = CodeChallengeMethod.S256
-    const codeChallenge = true
+    const codeChallengeMethod = null
+    const codeChallenge = false
     const includeGrantedScopes = false
     const state = false
 
@@ -86,13 +86,13 @@ test('create generic authentication URL piorice params passed in the method', (t
         state
         , prompt
         , scope
-        , clientId
-        , accessType
-        , redirectUri
-        , responseType
-        , codeChallenge
-        , codeChallengeMethod
-        , includeGrantedScopes
+        , client_id: clientId
+        , access_type: accessType
+        , redirect_uri: redirectUri
+        , response_type: responseType
+        , code_challenge: codeChallenge
+        , code_challenge_method: codeChallengeMethod
+        , include_granted_scopes: includeGrantedScopes
     })
 
     const { searchParams, origin, pathname } = new URL(auth.url)
@@ -107,7 +107,7 @@ test('create generic authentication URL piorice params passed in the method', (t
     t.is(searchParams.get('scope'), scope.join(' '))
     t.is(searchParams.get('code_challenge_method'), codeChallengeMethod)
     t.is(searchParams.get('include_granted_scopes'), String(includeGrantedScopes))
-    t.is(searchParams.get('code_challenge'), String(codeChallenge))
+    t.is(searchParams.get('code_challenge'), null)
 })
 
 test('create generic authentication URL whit state enabled', (t) => {

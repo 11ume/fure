@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import querystring from 'querystring'
 import { FureProvider } from 'fure-provider'
 import { deleteFalsyValues, getRequiredParam } from 'fure-shared'
@@ -31,7 +32,7 @@ export interface IGenerateAuthOptions {
     /**
      * Application ID.
      */
-    clientId?: string
+    client_id?: string
 
     /**
      * @required
@@ -42,14 +43,14 @@ export interface IGenerateAuthOptions {
      * @value token - Response data is included as a URL fragment and contains an access token. Desktop apps must use this setting for response_type. This is most
      * useful when the client will be handling the token.
      */
-    responseType?: string
+    response_type?: string
 
     /**
      * @required
      * Determines where the API server redirects the user after the user completes
      * the authorization flow.
      */
-    redirectUri?: string
+    redirect_uri?: string
 
     /**
      * @required
