@@ -15,3 +15,8 @@ export const deleteFalsyValues = <T>(params: T): Partial<T> => Object
         return pv
     }, {})
 
+export const hasBrowserCrypto = (): boolean => typeof window !== 'undefined' &&
+    typeof window.crypto !== 'undefined' &&
+    typeof window.crypto.subtle !== 'undefined'
+
+export const isBrowser = (): boolean => typeof window !== 'undefined' && typeof window.document !== 'undefined'
