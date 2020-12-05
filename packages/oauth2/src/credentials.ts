@@ -1,6 +1,4 @@
-/* eslint-disable camelcase */
-
-export interface TokenRequestValues {
+export interface ITokenRequestValues {
   /**
    * He authorization code returned from the initial request
    */
@@ -32,7 +30,7 @@ export interface TokenRequestValues {
   grant_type: string
 }
 
-export interface TokenCredentials {
+export interface ITokenCredentials {
   /**
    * The scopes of access granted by the access_token expressed as a list of space-delimited, case-sensitive strings.
    */
@@ -65,7 +63,7 @@ export interface TokenCredentials {
   access_token?: string
 }
 
-export interface TokenCredentialsError {
+export interface ITokenCredentialsError {
   /**
    * Error message.
    */
@@ -76,3 +74,5 @@ export interface TokenCredentialsError {
    */
   error_description?: string
 }
+
+export type AuthTokenResponse = ITokenCredentials & ITokenCredentialsError

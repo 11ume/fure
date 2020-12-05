@@ -1,8 +1,13 @@
 import test from 'ava'
 import nock from 'nock'
-import fureOAuth2GoogleProvider, { GoogleOAuth2ProviderOptions, ResponseType, Prompt } from '..'
 import { FureError } from 'fure-provider/src/error'
-import { AccessType, CodeChallengeMethod } from '../src/provider'
+import fureOAuth2GoogleProvider, {
+    GoogleOAuth2ProviderOptions
+    , AccessType
+    , CodeChallengeMethod
+    , ResponseType
+    , Prompt
+} from '..'
 
 const createFureOAuth2GoogleProvider = (options?: Partial<GoogleOAuth2ProviderOptions>) => {
     const clientId = 'foobar'
