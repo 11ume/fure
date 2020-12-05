@@ -1,11 +1,17 @@
 import querystring from 'querystring'
-import { randomBytes } from 'crypto'
 import { FureProvider } from 'fure-provider'
 import { getRequiredParam } from 'fure-shared'
 import { v4 as uuidv4 } from 'uuid'
-import createOAuth2Client, { OAuth2Client, GetTokenOptions } from 'fure-oauth2-client'
+import createOAuth2Client, { OAuth2Client } from 'fure-oauth2-client'
+import { createPkce } from 'fure-oauth2-pkce'
 
-export interface IGenerateAuthParams {
+export interface IFureOAuth2Provider {
+    generateAuth(options: Partial<IGenerateAuthOptions>): GenerateAuthResult
+    authenticate(url: string, options?: GetTokenOptions): Promise<any>
+    revokeToken(): boolean
+}
+
+export interface IGenerateAuthOptions {
     /**
      * Application ID.
      */
@@ -47,23 +53,24 @@ export interface IGenerateAuthParams {
     state?: boolean
 }
 
-export enum CodeChallengeMethod {
-    plain = 'plain'
-    , S256 = 'S256'
-}
-
 export type GenerateAuthResult = {
     url: string
     state?: string | null
-    nonce?: string | null
+    codeVerifier?: string | null
+    codeChallenge?: string | null
 }
 
-export interface IFureOAuth2Provider {
-    generateAuth(options: Partial<IGenerateAuthParams>): GenerateAuthResult
-    authenticate(url: string, options?: GetTokenOptions): Promise<any>
-    revokeToken(): boolean
+export type GetTokenOptions = {
+    state?: string
+    clientId?: string
+    redirectUri?: string
+    codeVerifier?: string
 }
 
+type GeneratePkceResult = {
+    codeVerifier: string
+    codeChallenge: string
+}
 export interface OAuth2ProviderOptions {
     readonly provider: string
     readonly tokenUrl: string
@@ -74,8 +81,6 @@ export interface OAuth2ProviderOptions {
     readonly state?: boolean
     readonly scope?: string[]
 }
-
-export type GetTokenOptionsProvider = Omit<GetTokenOptions, 'code' | 'codeVerifier'>
 
 export class FureOAuth2Provider extends FureProvider {
     readonly state: boolean
@@ -130,13 +135,20 @@ export class FureOAuth2Provider extends FureProvider {
         return state ? uuid : null
     }
 
-    protected generateAuthNonceParam(nonce: boolean): string {
-        const str = randomBytes(16).toString('hex') // 32 bytes
-        return nonce ? str : null
+    protected generatePkce(codeChallange: boolean): GeneratePkceResult {
+        const pkce = createPkce()
+        if (codeChallange) {
+            return pkce.generate()
+        }
+
+        return {
+            codeVerifier: null
+            , codeChallenge: null
+        }
     }
 
-    protected generateAuthenticationUrl(params: Partial<IGenerateAuthParams>, state: string, nonce: string): string {
-        return this.#oAuth2Client.generateAuthenticationUrl(params, state, nonce)
+    protected generateAuthenticationUrl(params: Partial<IGenerateAuthOptions>, state: string, codeChallenge: string): string {
+        return this.#oAuth2Client.generateAuthenticationUrl(params, state, codeChallenge)
     }
 
     protected getQueryObjectFromUrl(currentUrl: URL): querystring.ParsedUrlQuery {
@@ -150,7 +162,10 @@ export class FureOAuth2Provider extends FureProvider {
         throw this.error(401, `Required param ${id}`, `The ${id} param is missing, or it has been altered.`)
     }
 
-    protected async getTokens(options: GetTokenOptions) {
-        return this.#oAuth2Client.getTokens(options)
+    protected async getTokens(code: string, options: GetTokenOptions) {
+        return this.#oAuth2Client.getTokens({
+            ...options
+            , code
+        })
     }
 }

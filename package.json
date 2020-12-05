@@ -17,6 +17,7 @@
     "build": "lerna run build",
     "test": "node node_modules/.bin/ava",
     "lint": "node node_modules/.bin/eslint .",
+    "lint:fix": "node node_modules/.bin/eslint . --fix",
     "test:coverage": "nyc --reporter=json ava",
     "clean:coverage": "rm -rf .nyc_output coverage"
   },

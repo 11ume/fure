@@ -76,7 +76,37 @@ export class OAuth2Client {
         this.#fetch = fetch
     }
 
-    private prepareAuthUrlParams(options: GenerateAuthUrlParams, state: string, nonce: string): GenerateAuthUrlParams {
+    async getTokens({
+        code
+        , clientId
+        , redirectUri
+        , codeVerifier = null
+    }: GetTokenOptions): Promise<GetTokenResponse> {
+        const values = {
+            code
+            , grant_type: GrantTypes.authorizationCode
+            , code_verifier: codeVerifier
+            , client_secret: this.clientSecret
+            , client_id: clientId ?? this.clientId
+            , redirect_uri: redirectUri ?? this.redirectUri
+        }
+
+        const res = await this.makeGetTokenRequest(values)
+        return this.handleGetTokenResponse(res)
+    }
+
+    generateAuthenticationUrl(params: GenerateAuthUrlParams
+        , state: string
+        , codeChallenge: string): string {
+        const preparedParams = this.prepareAuthUrlParams(params, state, codeChallenge)
+        const cleanedParams = deleteFalsyValues(preparedParams)
+        const queryParams = querystring.stringify(cleanedParams)
+        return `${this.authenticationUrl}?${queryParams}`
+    }
+
+    private prepareAuthUrlParams(options: GenerateAuthUrlParams
+        , state: string
+        , codeChallenge: string): GenerateAuthUrlParams {
         let scope = options.scope
         if (options.scope instanceof Array) {
             scope = options.scope.join(' ')
@@ -85,8 +115,8 @@ export class OAuth2Client {
         return {
             ...options
             , state
-            , nonce
             , scope
+            , code_challenge: codeChallenge
         }
     }
 
@@ -122,31 +152,5 @@ export class OAuth2Client {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         })
-    }
-
-    async getTokens({
-        code
-        , clientId
-        , redirectUri
-        , codeVerifier = null
-    }: GetTokenOptions): Promise<GetTokenResponse> {
-        const values = {
-            code
-            , grant_type: GrantTypes.authorizationCode
-            , code_verifier: codeVerifier
-            , client_secret: this.clientSecret
-            , client_id: clientId ?? this.clientId
-            , redirect_uri: redirectUri ?? this.redirectUri
-        }
-
-        const res = await this.makeGetTokenRequest(values)
-        return this.handleGetTokenResponse(res)
-    }
-
-    generateAuthenticationUrl(params: GenerateAuthUrlParams, state: string, nonce: string): string {
-        const preparedParams = this.prepareAuthUrlParams(params, state, nonce)
-        const cleanedParams = deleteFalsyValues(preparedParams)
-        const queryParams = querystring.stringify(cleanedParams)
-        return `${this.authenticationUrl}?${queryParams}`
     }
 }
