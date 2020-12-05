@@ -245,7 +245,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , include_granted_scopes: includeGrantedScopes
         }
 
-        this.checkParamChallange(options.codeChallengeMethod, options.codeChallenge)
+        this.checkParamChallange(params.code_challenge_method, params.code_challenge)
         return params
     }
 
