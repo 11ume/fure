@@ -6,11 +6,12 @@ import createOAuth2Client, { OAuth2Client } from 'fure-oauth2-client'
 import { createPkce } from 'fure-oauth2-pkce'
 
 export interface IFureOAuth2Provider {
-    generateAuth(options: Partial<IGenerateAuthParams>): GenerateAuthResult
+    generateAuth(options: Partial<IGenerateAuthOptions>): GenerateAuthResult
     authenticate(url: string, options?: GetTokenOptions): Promise<any>
     revokeToken(): boolean
 }
-export interface IGenerateAuthParams {
+
+export interface IGenerateAuthOptions {
     /**
      * Application ID.
      */
@@ -66,6 +67,10 @@ export type GetTokenOptions = {
     codeVerifier?: string
 }
 
+type GeneratePkceResult = {
+    codeVerifier: string
+    codeChallenge: string
+}
 export interface OAuth2ProviderOptions {
     readonly provider: string
     readonly tokenUrl: string
@@ -130,7 +135,7 @@ export class FureOAuth2Provider extends FureProvider {
         return state ? uuid : null
     }
 
-    protected generatePkce(codeChallange: boolean) {
+    protected generatePkce(codeChallange: boolean): GeneratePkceResult {
         const pkce = createPkce()
         if (codeChallange) {
             return pkce.generate()
@@ -142,7 +147,7 @@ export class FureOAuth2Provider extends FureProvider {
         }
     }
 
-    protected generateAuthenticationUrl(params: Partial<IGenerateAuthParams>, state: string, codeChallenge: string): string {
+    protected generateAuthenticationUrl(params: Partial<IGenerateAuthOptions>, state: string, codeChallenge: string): string {
         return this.#oAuth2Client.generateAuthenticationUrl(params, state, codeChallenge)
     }
 

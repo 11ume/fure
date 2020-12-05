@@ -1,6 +1,6 @@
 import {
     IFureOAuth2Provider
-    , IGenerateAuthParams
+    , IGenerateAuthOptions
     , GenerateAuthResult
     , OAuth2ProviderOptions
     , GetTokenOptions
@@ -28,7 +28,7 @@ export enum CodeChallengeMethod {
     , S256 = 'S256'
 }
 
-interface IGoogleGenerateAuthParams extends IGenerateAuthParams {
+interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
     /**
      * @recommended
      * Indicates whether your application can refresh access tokens
@@ -187,7 +187,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         this.includeGrantedScopes = includeGrantedScopes
     }
 
-    generateAuth(params: IGoogleGenerateAuthParams = {}): GenerateAuthResult {
+    generateAuth(params: IGoogleGenerateAuthOptions = {}): GenerateAuthResult {
         const preparedParams = this.prepareAuthParams(params)
         const state = this.generateAuthStateParam(this.state || preparedParams.state)
         const { codeVerifier, codeChallenge } = this.generatePkce(this.codeChallenge || preparedParams.codeChallenge)
@@ -228,7 +228,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return res.credentials
     }
 
-    private prepareAuthParams(options: IGoogleGenerateAuthParams = {}): Partial<IGoogleGenerateAuthParams> {
+    private prepareAuthParams(options: IGoogleGenerateAuthOptions = {}): Partial<IGoogleGenerateAuthOptions> {
         const {
             hd = this.hd
             , state = this.state
