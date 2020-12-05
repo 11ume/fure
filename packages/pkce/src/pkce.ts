@@ -6,6 +6,15 @@ export class Pkce {
         this.#crypto = crypto
     }
 
+    generate() {
+        const codeVerifier = this.generateCodeVerifier()
+        const codeChallenge = this.generateCodeChallange(codeVerifier)
+        return {
+            codeVerifier
+            , codeChallenge
+        }
+    }
+
     /**
      * Generate base64 encoded SHA256 string.
      */
@@ -45,14 +54,5 @@ export class Pkce {
         const randomString = this.#crypto.randomBytesBase64(bytesSize)
         const codeVerifier = this.removeInvalidCharacters(randomString)
         return codeVerifier
-    }
-
-    generate() {
-        const codeVerifier = this.generateCodeVerifier()
-        const codeChallenge = this.generateCodeChallange(codeVerifier)
-        return {
-            codeVerifier
-            , codeChallenge
-        }
     }
 }

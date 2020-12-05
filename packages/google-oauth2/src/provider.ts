@@ -192,6 +192,30 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         this.includeGrantedScopes = includeGrantedScopes
     }
 
+    generateAuth(params: IGoogleGenerateAuthParams = {}): GenerateAuthResult {
+        const preparedParams = this.prepareAuthParams(params)
+        const state = this.generateAuthStateParam(preparedParams.state)
+        const nonce = this.generateAuthNonceParam(preparedParams.nonce)
+        const url = this.generateAuthenticationUrl(preparedParams, state, nonce)
+
+        return {
+            url
+            , state
+            , nonce
+        }
+    }
+
+    authenticate(currentUrl: string, options?: GetTokenOptionsProvider) {
+        const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
+        const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
+        const code = this.getRequiredParam('code', callbackUrlQueryObj)
+        return this.getTokenOnAuthenticate(code, options)
+    }
+
+    revokeToken() {
+        return true
+    }
+
     private checkParamChallange(codeChallengeMethod: string, codeChallenge: boolean): void {
         if (codeChallengeMethod && !codeChallenge) {
             throw this.error(500, 'Required code_challenge param', 'If a code_challenge_method is provided, code_challenge must be included.')
@@ -247,30 +271,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
 
         this.checkParamChallange(params.code_challenge_method, params.code_challenge)
         return params
-    }
-
-    generateAuth(params: IGoogleGenerateAuthParams = {}): GenerateAuthResult {
-        const preparedParams = this.prepareAuthParams(params)
-        const state = this.generateAuthStateParam(preparedParams.state)
-        const nonce = this.generateAuthNonceParam(preparedParams.nonce)
-        const url = this.generateAuthenticationUrl(preparedParams, state, nonce)
-
-        return {
-            url
-            , state
-            , nonce
-        }
-    }
-
-    authenticate(currentUrl: string, options?: GetTokenOptionsProvider) {
-        const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
-        const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
-        const code = this.getRequiredParam('code', callbackUrlQueryObj)
-        return this.getTokenOnAuthenticate(code, options)
-    }
-
-    revokeToken() {
-        return true
     }
 
     // private getUserInfo() { }
