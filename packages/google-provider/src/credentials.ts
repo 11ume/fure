@@ -41,28 +41,28 @@ export interface TokenCredentials {
   /**
    * Contains identity information about the user that is digitally signed by Google.
    */
-  id_token?: string | null
+  id_token?: string
 
   /**
    * Identifies the type of token returned. At this time, this field always has the value Bearer.
    */
-  token_type?: string | null
+  token_type?: string
 
   /**
    * The time in ms at which this token is thought to expire.
    */
-  expires_in?: number | null
+  expires_in?: number
 
   /**
    * This field is only present if the access_type parameter was set to offline in the authentication request.
    * For details, see Refresh tokens.
    */
-  refresh_token?: string | null
+  refresh_token?: string
 
   /**
    * A token that can be sent to a Google API.
    */
-  access_token?: string | null
+  access_token?: string
 }
 
 export interface TokenCredentialsError {
@@ -76,5 +76,3 @@ export interface TokenCredentialsError {
    */
   error_description?: string
 }
-
-export interface AuthTokenResponse extends TokenCredentials, TokenCredentialsError { }

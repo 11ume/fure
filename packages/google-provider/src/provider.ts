@@ -1,3 +1,7 @@
+import querystring from 'querystring'
+import { TokenRequestValues, TokenCredentials, TokenCredentialsError } from './credentials'
+import { deleteFalsyValues } from 'fure-shared'
+import { Response } from 'node-fetch'
 import {
     IFureOAuth2Provider
     , IGenerateAuthOptions
@@ -26,6 +30,25 @@ export enum ResponseType {
 export enum CodeChallengeMethod {
     plain = 'plain'
     , S256 = 'S256'
+}
+
+export interface GoogleOAuth2ProviderSelfOptions extends OAuth2ProviderOptions {
+    readonly hd?: string
+    readonly prompt?: Prompt
+    readonly accessType?: AccessType
+    readonly responseType?: ResponseType
+    readonly codeChallenge?: boolean
+    readonly codeChallengeMethod?: CodeChallengeMethod
+    readonly includeGrantedScopes?: boolean
+}
+
+export type GoogleOAuth2ProviderOptions = Omit<GoogleOAuth2ProviderSelfOptions,
+    'provider'
+    | 'tokenUrl'
+    | 'authenticationUrl'>
+
+enum GrantTypes {
+    authorizationCode = 'authorization_code'
 }
 
 interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
@@ -107,20 +130,18 @@ interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
     codeChallenge?: boolean
 }
 
-export interface GoogleOAuth2ProviderSelfOptions extends OAuth2ProviderOptions {
-    readonly hd?: string
-    readonly prompt?: Prompt
-    readonly accessType?: AccessType
-    readonly responseType?: ResponseType
-    readonly codeChallenge?: boolean
-    readonly codeChallengeMethod?: CodeChallengeMethod
-    readonly includeGrantedScopes?: boolean
+type AuthTokenResponse = TokenCredentials & TokenCredentialsError
+
+type ResponseError = {
+    status: number
+    message: string
+    description: string
 }
 
-export type GoogleOAuth2ProviderOptions = Omit<GoogleOAuth2ProviderSelfOptions,
-    'provider'
-    | 'tokenUrl'
-    | 'authenticationUrl'>
+type GetTokenResponse = {
+    error: ResponseError
+    credentials: Partial<TokenCredentials>
+}
 
 /**
  * Authentication provider.
@@ -241,7 +262,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , codeChallenge = this.codeChallenge
             , codeChallengeMethod = this.codeChallengeMethod
             , includeGrantedScopes = this.includeGrantedScopes
-            , loginHint = null
+            , loginHint
         } = options
 
         const params = {
@@ -263,6 +284,56 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return params
     }
 
-    // private getUserInfo() { }
+    private async getTokens(code: string, {
+        clientId
+        , redirectUri
+        , codeVerifier
+    }: GetTokenOptions = {}): Promise<GetTokenResponse> {
+        const values = {
+            code
+            , grant_type: GrantTypes.authorizationCode
+            , code_verifier: codeVerifier
+            , client_secret: this.clientSecret
+            , client_id: clientId ?? this.clientId
+            , redirect_uri: redirectUri ?? this.redirectUri
+        }
+
+        const res = await this.makeGetTokenRequest(values)
+        return this.handleGetTokenResponse(res)
+    }
+
+    private async handleGetTokenResponse(res: Response): Promise<GetTokenResponse> {
+        const body: AuthTokenResponse = await res.json()
+        if (res.ok) {
+            return {
+                error: null
+                , credentials: body
+            }
+        }
+
+        const status = res.status
+        const message = body.error ?? 'Get token response error.'
+        const description = body.error_description ?? 'No description.'
+        return {
+            credentials: null
+            , error: {
+                status
+                , message
+                , description
+            }
+        }
+    }
+
+    private makeGetTokenRequest(values: TokenRequestValues): Promise<Response> {
+        const cleanedValues = deleteFalsyValues(values)
+        const body = querystring.stringify(cleanedValues)
+        return this.fetch(this.tokenUrl, {
+            body
+            , method: 'POST'
+            , headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+    }
 }
 
