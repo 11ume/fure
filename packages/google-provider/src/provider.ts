@@ -233,12 +233,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return true
     }
 
-    private checkParamChallange(codeChallengeMethod: string, codeChallenge: boolean): void {
-        if (codeChallengeMethod && !codeChallenge) {
-            throw this.error(500, 'Required code_challenge param', 'If a code_challenge_method is provided, code_challenge must be included.')
-        }
-    }
-
     private async getTokenOnAuthenticate(code: string, options: GetTokenOptions) {
         const res = await this.getTokens(code, options)
         if (res.error) {
@@ -265,7 +259,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , include_granted_scopes = this.includeGrantedScopes
         } = options
 
-        this.checkParamChallange(code_challenge_method, code_challenge)
         return {
             hd
             , state
@@ -296,7 +289,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , redirect_uri: redirectUri ?? this.redirectUri
         }
 
-        const res = await this.makeGetTokenRequest(values)
+        const cleanedValues = deleteFalsyValues(values)
+        const res = await this.makeGetTokenRequest(cleanedValues)
         return this.handleGetTokenResponse(res)
     }
 
@@ -322,9 +316,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
     }
 
-    private makeGetTokenRequest(values: TokenRequestValues): Promise<Response> {
-        const cleanedValues = deleteFalsyValues(values)
-        const body = querystring.stringify(cleanedValues)
+    private makeGetTokenRequest(values: Partial<TokenRequestValues>): Promise<Response> {
+        const body = querystring.stringify(values)
         return this.fetch(this.tokenUrl, {
             body
             , method: 'POST'
