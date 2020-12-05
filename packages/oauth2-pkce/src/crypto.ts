@@ -44,4 +44,4 @@ export class NodeCrypto implements Crypto {
     }
 }
 
-export const createCrypto = (): NodeCrypto => new NodeCrypto()
+export const createNodeCrypto = (): NodeCrypto => new NodeCrypto()

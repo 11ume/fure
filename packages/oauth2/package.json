@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "fure-oauth2-client": "1.0.0-alpha.0",
+    "fure-oauth2-pkce": "1.0.0-alpha.0",
     "uuid": "^8.3.1"
   },
   "devDependencies": {

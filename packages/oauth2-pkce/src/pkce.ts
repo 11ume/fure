@@ -1,9 +1,9 @@
-import { Crypto } from './crypto'
+import { Crypto, createNodeCrypto } from './crypto'
 
 export class Pkce {
     #crypto: Crypto
-    constructor(crypto: Crypto) {
-        this.#crypto = crypto
+    constructor() {
+        this.#crypto = createNodeCrypto()
     }
 
     generate() {
@@ -56,3 +56,5 @@ export class Pkce {
         return codeVerifier
     }
 }
+
+export const createPkce = () => new Pkce()

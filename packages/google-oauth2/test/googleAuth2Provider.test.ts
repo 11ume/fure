@@ -2,8 +2,7 @@ import test from 'ava'
 import nock from 'nock'
 import fureOAuth2GoogleProvider, { GoogleOAuth2ProviderOptions, ResponseType, Prompt } from '..'
 import { FureError } from 'fure-provider/src/error'
-import { CodeChallengeMethod } from 'fure-oauth2'
-import { AccessType } from '../src/provider'
+import { AccessType, CodeChallengeMethod } from '../src/provider'
 
 const createFureOAuth2GoogleProvider = (options?: Partial<GoogleOAuth2ProviderOptions>) => {
     const clientId = 'foobar'
@@ -36,7 +35,6 @@ test('create generic authentication URL whit uncommon params', (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider()
 
     const hd = '*'
-    const nonce = true
     const includeGrantedScopes = true
     const loginHint = 'asd@asd.com'
     const codeChallenge = true
@@ -44,7 +42,6 @@ test('create generic authentication URL whit uncommon params', (t) => {
 
     const auth = googleAauth2.generateAuth({
         hd
-        , nonce
         , loginHint
         , codeChallenge
         , codeChallengeMethod
@@ -53,8 +50,6 @@ test('create generic authentication URL whit uncommon params', (t) => {
     const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
-    t.true(typeof searchParams.get('nonce') === 'string')
-    t.is(searchParams.get('nonce').length, 32)
     t.is(searchParams.get('hd'), hd)
     t.is(searchParams.get('login_hint'), loginHint)
     t.is(searchParams.get('code_challenge_method'), codeChallengeMethod)
@@ -73,7 +68,6 @@ test('create generic authentication URL piorice params passed in the method', (t
         , codeChallengeMethod: CodeChallengeMethod.plain
         , includeGrantedScopes: true
         , state: true
-        , nonce: true
         , clientId: '1234'
     })
 
@@ -87,11 +81,9 @@ test('create generic authentication URL piorice params passed in the method', (t
     const codeChallenge = true
     const includeGrantedScopes = false
     const state = false
-    const nonce = false
 
     const auth = googleAauth2.generateAuth({
         state
-        , nonce
         , prompt
         , scope
         , clientId
@@ -107,7 +99,6 @@ test('create generic authentication URL piorice params passed in the method', (t
     t.is(origin + pathname, googleAauth2.authenticationUrl)
 
     t.is(searchParams.get('state'), null)
-    t.is(searchParams.get('nonce'), null)
     t.is(searchParams.get('prompt'), prompt)
     t.is(searchParams.get('client_id'), '5678')
     t.is(searchParams.get('access_type'), accessType)
