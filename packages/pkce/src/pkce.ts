@@ -1,8 +1,8 @@
-import { NodeCrypto } from './crypto'
+import { Crypto } from './crypto'
 
 export class Pkce {
-    #crypto: NodeCrypto
-    constructor(crypto: NodeCrypto) {
+    #crypto: Crypto
+    constructor(crypto: Crypto) {
         this.#crypto = crypto
     }
 
@@ -34,12 +34,22 @@ export class Pkce {
             .replace(/\//g, '_')
     }
 
-    generateCodeVerifier() {
-        const bytes = 96
-        const randomString = this.#crypto.randomBytesBase64(bytes)
-        const codeVerifier = this.removeInvalidCharacters(randomString)
+    private generateCodeChallange(codeVerifier: string) {
         const unencodedCodeChallenge = this.generateBase64Encoded(codeVerifier)
         const codeChallenge = this.converToBase64UrlEncoding(unencodedCodeChallenge)
+        return codeChallenge
+    }
+
+    private generateCodeVerifier() {
+        const bytesSize = 96
+        const randomString = this.#crypto.randomBytesBase64(bytesSize)
+        const codeVerifier = this.removeInvalidCharacters(randomString)
+        return codeVerifier
+    }
+
+    generate() {
+        const codeVerifier = this.generateCodeVerifier()
+        const codeChallenge = this.generateCodeChallange(codeVerifier)
         return {
             codeVerifier
             , codeChallenge
