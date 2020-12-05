@@ -1,7 +1,7 @@
 {
   "name": "fure-oauth2",
   "version": "1.0.0-alpha.0",
-  "description": "",
+  "description": "Base OAuth 2.0 provider",
   "main": "dist/index.js",
   "types": "index.ts",
   "license": "MIT",
