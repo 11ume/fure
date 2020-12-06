@@ -1,4 +1,4 @@
-export interface ITokenRequestParams {
+export interface ITokensRequestParams {
   /**
    * He authorization code returned from the initial request
    */
@@ -30,7 +30,7 @@ export interface ITokenRequestParams {
   grant_type: string
 }
 
-export interface ITokenCredentialsResponse {
+export interface ITokensCredentialsResponse {
   /**
    * The scopes of access granted by the access_token expressed as a list of space-delimited, case-sensitive strings.
    */

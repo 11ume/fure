@@ -40,7 +40,7 @@ export type ResponseError = {
 
 export interface IGenerateAuthResult {
     url: string
-    state?: string
+    state?: string | null
 }
 
 export interface IFureOAuth2Provider<T> {
