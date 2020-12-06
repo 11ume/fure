@@ -149,7 +149,7 @@ test('get access token', async (t) => {
             'content-type': 'application/x-www-form-urlencoded'
         }
     })
-        .post('/oauth2/v4/token')
+        .post('/token')
         .reply(200, {
             scope
             , id_token: idToken
@@ -178,7 +178,7 @@ test('get access token error', async (t) => {
             'content-type': 'application/x-www-form-urlencoded'
         }
     })
-        .post('/oauth2/v4/token')
+        .post('/token')
         .reply(400, {
             error: 'something has gone wrong'
             , error_description: 'something has gone wrong description'

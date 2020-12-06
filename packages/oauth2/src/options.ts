@@ -41,7 +41,6 @@ export interface IGenerateAuthOptions {
 }
 
 export interface IGetTokenOptions {
-
     /**
      * Application ID.
      */

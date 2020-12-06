@@ -2,8 +2,6 @@ import { FureGoogleOAuth2Provider, GoogleOAuth2ProviderOptions } from './provide
 
 // The base endpoint for get token information.
 // const GOOGLE_TOKEN_INFO_URL = 'https://oauth2.googleapis.com/tokeninfo'
-// The base endpoint for get user information.
-// const GOOGLE_USER_INFO = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 const createFureOAuth2GoogleProvider = (options: GoogleOAuth2ProviderOptions) => {
     return new FureGoogleOAuth2Provider(options)

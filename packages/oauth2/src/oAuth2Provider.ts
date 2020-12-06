@@ -1,11 +1,12 @@
 import querystring from 'querystring'
+import { Response } from 'node-fetch'
 import { FureProvider } from 'fure-provider'
 import { deleteFalsyValues, getRequiredParam } from 'fure-shared'
 import { v4 as uuidv4 } from 'uuid'
 import { createPkce } from 'fure-oauth2-pkce'
 import { Fetch, fetch } from './fetch'
 import { IGenerateAuthOptions, IGetTokenOptions } from './options'
-import { ITokenCredentials } from './credentials'
+import { ITokenCredentialsResponse } from './credentials'
 
 type GeneratePkceResult = {
     codeVerifier: string
@@ -16,17 +17,40 @@ type GenerateAuthUrlParams = {
     [key: string]: string | string[] | boolean
 }
 
-export type GenerateAuthResult = {
+type JsonResponse<T> = {
+    error: ResponseError | null
+    value: T | null
+}
+
+type ResponseSuccessResult<T> = {
+    error: ResponseError | null
+    value: T | null
+}
+
+type ResponseErrorResult = {
+    error: ResponseError
+    value: null
+}
+
+type ResponseErrorBody = {
+    error?: string
+    error_description?: string
+}
+
+export type ResponseError = {
+    status: number
+    message: string
+    description: string
+}
+
+export interface IGenerateAuthResult {
     url: string
     state?: string
-    codeVerifier?: string
-    codeChallenge?: string
 }
 
 export interface IFureOAuth2Provider {
-    generateAuth(options: Partial<IGenerateAuthOptions>): GenerateAuthResult
-    authenticate(url: string, options?: IGetTokenOptions): Promise<ITokenCredentials>
-    getUserInfo(): Promise<any>
+    generateAuth(options: Partial<IGenerateAuthOptions>): IGenerateAuthResult
+    authenticate(url: string, options?: IGetTokenOptions): Promise<ITokenCredentialsResponse>
     revokeToken?(): Promise<any>
     verifyToken?(): Promise<any>
     refreshToken?(): Promise<any>
@@ -84,6 +108,49 @@ export class FureOAuth2Provider extends FureProvider {
         const cleanedParams = deleteFalsyValues(preparedParams)
         const queryParams = querystring.stringify(cleanedParams)
         return `${this.authenticationUrl}?${queryParams}`
+    }
+
+    protected handleResponseSuccess<T>(body: T): ResponseSuccessResult<T> {
+        return {
+            error: null
+            , value: body
+        }
+    }
+
+    protected handleResponseError(status: number, body: ResponseErrorBody): ResponseErrorResult {
+        const message = body.error ?? 'Get token response error.'
+        const description = body.error_description ?? 'No description.'
+        const error = {
+            status
+            , message
+            , description
+        }
+
+        return {
+            error
+            , value: null
+        }
+    }
+
+    protected async handleJsonResponse<T>(res: Response): Promise<JsonResponse<T>> {
+        const body = await res.json()
+        if (res.ok) return this.handleResponseSuccess(body)
+        const err = this.handleResponseError(res.status, body)
+        const { status, message, description } = err.error
+        throw this.error(status, message, description)
+    }
+
+    protected makePostRequest<P extends querystring.ParsedUrlQueryInput>(url: string, params: Partial<P>): Promise<Response> {
+        const body = querystring.stringify(params)
+        const res = this.fetch(url, {
+            body
+            , method: 'POST'
+            , headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+
+        return res
     }
 
     protected generateAuthStateParam(state: boolean): string {
