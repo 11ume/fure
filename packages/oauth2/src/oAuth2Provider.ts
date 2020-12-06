@@ -26,7 +26,7 @@ export type GenerateAuthResult = {
 export interface IFureOAuth2Provider {
     generateAuth(options: Partial<IGenerateAuthOptions>): GenerateAuthResult
     authenticate(url: string, options?: IGetTokenOptions): Promise<ITokenCredentials>
-    getUserInfo(): Promise<any>
+    getUserInfo?(): Promise<any>
     revokeToken?(): Promise<any>
     verifyToken?(): Promise<any>
     refreshToken?(): Promise<any>

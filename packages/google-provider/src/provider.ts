@@ -35,20 +35,54 @@ export type GoogleOAuth2ProviderOptions = Omit<IGoogleOAuth2ProviderSelfOptions,
     | 'tokenUrl'
     | 'authenticationUrl'>
 
-type ResponseError = {
+// interface UserParameters {
+//     /**
+//      * Data format for the response.
+//      * @value json
+//      */
+//     alt?: 'json'
+//     /**
+//      * Selector specifying which fields to include in a partial response.
+//      */
+//     fields?: string
+//     /**
+//      * API key. Your API key identifies your project and provides you with API access, quota, and reports.
+//      * Required unless you provide an OAuth 2.0 token.
+//      */
+//     key: string
+
+//     /**
+//      * OAuth 2.0 token for the current user.
+//      */
+//     oauth_token: string
+
+//     /**
+//      * Returns response with indentations and line breaks.
+//      */
+//     prettyPrint: boolean
+
+//     /**
+//      * An opaque string that represents a user for quota purposes. Must not exceed 40 characters.
+//      */
+//     quotaUser: string
+// }
+
+type GetTokenResponseError = {
     status: number
     message: string
     description: string
 }
 
 type GetTokenResponse = {
-    error: ResponseError
+    error: GetTokenResponseError
     credentials: ITokenCredentials
 }
 
 enum GrantTypes {
     authorizationCode = 'authorization_code'
 }
+
+// https://accounts.google.com/.well-known/openid-configuration
 
 /**
  * Authentication provider.
@@ -58,12 +92,17 @@ const PROVIDER = 'google'
 /**
  * Base URL for token retrieval.
  */
-const GOOGLE_TOKEN_URL = 'https://www.googleapis.com/oauth2/v4/token'
+const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 
 /**
  * Base URL for handle authentication.
  */
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
+
+/**
+ * Base URL for obtain user information of some access token.
+ */
+const GOOGLE_USER_INFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo'
 
 /**
  * A space-delimited list of scopes that identify the resources that your application
@@ -81,6 +120,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     readonly codeChallenge: boolean
     readonly codeChallengeMethod: CodeChallengeMethod
     readonly includeGrantedScopes: boolean
+    readonly userInfoUrl: string
     constructor({
         clientId
         , clientSecret
@@ -113,9 +153,10 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         this.codeChallenge = codeChallenge
         this.codeChallengeMethod = codeChallengeMethod
         this.includeGrantedScopes = includeGrantedScopes
+        this.userInfoUrl = GOOGLE_USER_INFO_URL
     }
 
-    generateAuth(params: IGoogleGenerateAuthOptions = {}): GenerateAuthResult {
+    public generateAuth(params: IGoogleGenerateAuthOptions = {}): GenerateAuthResult {
         const preparedParams = this.prepareAuthParams(params)
         const state = this.generateAuthStateParam(preparedParams.state)
         const { codeVerifier, codeChallenge } = this.generatePkce(preparedParams.code_challenge)
@@ -128,16 +169,24 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
     }
 
-    authenticate(currentUrl: string, options?: IGetTokenOptions): Promise<ITokenCredentials> {
+    public authenticate(currentUrl: string, options?: IGetTokenOptions): Promise<ITokenCredentials> {
         const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
         const code = this.getRequiredParam('code', callbackUrlQueryObj)
         return this.getTokenOnAuthenticate(code, options)
     }
 
-    getUserInfo() {
-        return Promise.resolve()
-    }
+    // public async getUserInfo(accessToken: string) {
+    //     const res = await this.fetch(this.userInfoUrl, {
+    //         body
+    //         , method: 'POST'
+    //         , headers: {
+    //             'Content-Type': 'application/x-www-form-urlencoded'
+    //         }
+    //     })
+
+    //     return res
+    // }
 
     private async getTokenOnAuthenticate(code: string, options: IGetTokenOptions): Promise<ITokenCredentials> {
         const res = await this.getToken(code, options)
@@ -200,14 +249,14 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return this.handleGetTokenResponse(res)
     }
 
-    private handleGetTokenSuccess(body: ITokenCredentials) {
+    private handleGetTokenSuccess(body: ITokenCredentials): GetTokenResponse {
         return {
             error: null
             , credentials: body
         }
     }
 
-    private handleGetTokenError(status: number, body: ITokenCredentialsError) {
+    private handleGetTokenError(status: number, body: ITokenCredentialsError): GetTokenResponse {
         const message = body.error ?? 'Get token response error.'
         const description = body.error_description ?? 'No description.'
         const error = {
