@@ -122,7 +122,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         this.userInfoUrl = GOOGLE_USER_INFO_URL
     }
 
-    public generateAuth(params: IGoogleGenerateAuthOptions = {}): IGenerateGoogleAuthResult {
+    public generateAuthUrl(params: IGoogleGenerateAuthOptions = {}): IGenerateGoogleAuthResult {
         const preparedParams = this.prepareAuthParams(params)
         const state = this.generateAuthStateParam(preparedParams.state)
         const { codeVerifier, codeChallenge } = this.generatePkce(preparedParams.code_challenge)
