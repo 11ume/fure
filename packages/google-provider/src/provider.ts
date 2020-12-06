@@ -1,12 +1,11 @@
 import querystring from 'querystring'
-import { deleteFalsyValues } from 'fure-shared'
 import { Response } from 'node-fetch'
 import {
     IFureOAuth2Provider
     , IGetTokenOptions
     , ITokenCredentials
     , ITokenCredentialsError
-    , ITokenRequestValues
+    , ITokenRequestParams
     , GenerateAuthResult
     , IOAuth2ProviderOptions
     , FureOAuth2Provider
@@ -19,6 +18,7 @@ import {
     , ResponseType
     , CodeChallengeMethod
 } from './options'
+import { IProfileParams, IProfileResponse } from './profile'
 
 export interface IGoogleOAuth2ProviderSelfOptions extends IOAuth2ProviderOptions {
     readonly hd?: string
@@ -34,38 +34,6 @@ export type GoogleOAuth2ProviderOptions = Omit<IGoogleOAuth2ProviderSelfOptions,
     'provider'
     | 'tokenUrl'
     | 'authenticationUrl'>
-
-// interface UserParameters {
-//     /**
-//      * Data format for the response.
-//      * @value json
-//      */
-//     alt?: 'json'
-//     /**
-//      * Selector specifying which fields to include in a partial response.
-//      */
-//     fields?: string
-//     /**
-//      * API key. Your API key identifies your project and provides you with API access, quota, and reports.
-//      * Required unless you provide an OAuth 2.0 token.
-//      */
-//     key: string
-
-//     /**
-//      * OAuth 2.0 token for the current user.
-//      */
-//     oauth_token: string
-
-//     /**
-//      * Returns response with indentations and line breaks.
-//      */
-//     prettyPrint: boolean
-
-//     /**
-//      * An opaque string that represents a user for quota purposes. Must not exceed 40 characters.
-//      */
-//     quotaUser: string
-// }
 
 type GetTokenResponseError = {
     status: number
@@ -176,17 +144,12 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return this.getTokenOnAuthenticate(code, options)
     }
 
-    // public async getUserInfo(accessToken: string) {
-    //     const res = await this.fetch(this.userInfoUrl, {
-    //         body
-    //         , method: 'POST'
-    //         , headers: {
-    //             'Content-Type': 'application/x-www-form-urlencoded'
-    //         }
-    //     })
-
-    //     return res
-    // }
+    public async getUserInfo(params: Partial<IProfileParams>): Promise<IProfileResponse> {
+        params.alt = 'json'
+        const res = await this.makeGetUserInfoRequest(params)
+        const body = await res.json()
+        return body
+    }
 
     private async getTokenOnAuthenticate(code: string, options: IGetTokenOptions): Promise<ITokenCredentials> {
         const res = await this.getToken(code, options)
@@ -235,7 +198,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , redirectUri
         , codeVerifier
     }: IGetTokenOptions = {}): Promise<GetTokenResponse> {
-        const values = {
+        const params = {
             code
             , grant_type: GrantTypes.authorizationCode
             , code_verifier: codeVerifier
@@ -244,8 +207,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , redirect_uri: redirectUri ?? this.redirectUri
         }
 
-        const cleanedValues = deleteFalsyValues(values)
-        const res = await this.makeGetTokenRequest(cleanedValues)
+        const res = await this.makeGetTokenRequest(params)
         return this.handleGetTokenResponse(res)
     }
 
@@ -276,8 +238,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return this.handleGetTokenError(res.status, body)
     }
 
-    private makeGetTokenRequest(values: Partial<ITokenRequestValues>): Promise<Response> {
-        const body = querystring.stringify(values)
+    private makeGetTokenRequest(params: Partial<ITokenRequestParams>): Promise<Response> {
+        const body = querystring.stringify(params)
         return this.fetch(this.tokenUrl, {
             body
             , method: 'POST'
@@ -285,6 +247,19 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         })
+    }
+
+    private makeGetUserInfoRequest(params: Partial<IProfileParams>): Promise<Response> {
+        const body = querystring.stringify(params)
+        const res = this.fetch(this.userInfoUrl, {
+            body
+            , method: 'POST'
+            , headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+
+        return res
     }
 }
 

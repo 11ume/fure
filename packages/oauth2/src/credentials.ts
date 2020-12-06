@@ -1,4 +1,4 @@
-export interface ITokenRequestValues {
+export interface ITokenRequestParams {
   /**
    * He authorization code returned from the initial request
    */
