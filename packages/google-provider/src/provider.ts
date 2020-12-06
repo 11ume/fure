@@ -44,6 +44,7 @@ interface AuthResult {
 
 enum GrantTypes {
     authorizationCode = 'authorization_code'
+    , refreshToken = 'refresh_token'
 }
 
 /**
@@ -192,6 +193,29 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const defaultErrorMessage = 'In request for revoke authentication access token.'
         const value = await res.json()
         return this.handleResponse(res, value, defaultErrorMessage)
+    }
+
+    public async refreshToken(refreshToken: string, clientId?: string) {
+        const params = {
+            grant_type: GrantTypes.refreshToken
+            , client_secret: this.clientSecret
+            , client_id: clientId ?? this.clientId
+            , refresh_token: refreshToken
+        }
+
+        const body = querystring.stringify(params)
+        const res = await this.request({
+            url: this.tokenUrl
+            , body
+            , method: 'POST'
+            , headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+
+        const defaultErrorMessage = 'In request for refresh access tokens.'
+        const tokens = await res.json()
+        return this.handleResponse(res, tokens, defaultErrorMessage)
     }
 
     public async getTokens(code: string, {

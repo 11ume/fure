@@ -47,8 +47,8 @@ export interface IFureOAuth2Provider<T> {
     generateAuthUrl(options: Partial<IGenerateAuthOptions>): IGenerateAuthResult
     authenticate(url: string, options?: IGetTokenOptions): Promise<T>
     revokeToken?(accessToken: string): Promise<any>
+    refreshToken?(clientId: string, refreshToken: string): Promise<any>
     verifyToken?(): Promise<any>
-    refreshToken?(): Promise<any>
 }
 
 export interface IOAuth2ProviderOptions {
