@@ -5,6 +5,7 @@ import {
     IFureOAuth2Provider
     , IGetTokenOptions
     , ITokenCredentials
+    , ITokenCredentialsError
     , ITokenRequestValues
     , GenerateAuthResult
     , IOAuth2ProviderOptions
@@ -134,8 +135,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return this.getTokenOnAuthenticate(code, options)
     }
 
-    revokeToken() {
-        return true
+    getUserInfo() {
+        return Promise.resolve()
     }
 
     private async getTokenOnAuthenticate(code: string, options: IGetTokenOptions): Promise<ITokenCredentials> {
@@ -199,23 +200,24 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return this.handleGetTokenResponse(res)
     }
 
-    private handleGetTokenSuccess(body: AuthTokenResponse) {
+    private handleGetTokenSuccess(body: ITokenCredentials) {
         return {
             error: null
             , credentials: body
         }
     }
 
-    private handleGetTokenError(status: number, body: AuthTokenResponse) {
+    private handleGetTokenError(status: number, body: ITokenCredentialsError) {
         const message = body.error ?? 'Get token response error.'
         const description = body.error_description ?? 'No description.'
+        const error = {
+            status
+            , message
+            , description
+        }
         return {
-            credentials: null
-            , error: {
-                status
-                , message
-                , description
-            }
+            error
+            , credentials: null
         }
     }
 

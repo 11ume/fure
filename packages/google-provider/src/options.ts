@@ -21,18 +21,6 @@ export enum CodeChallengeMethod {
 }
 
 export interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
-    /**
-     * @recommended
-     * Indicates whether your application can refresh access tokens
-     * when the user is not present at the browser. Valid parameter values are
-     * 'online', which is the default value, and 'offline'. Set the value to
-     * 'offline' if your application needs to refresh access tokens when the user
-     * is not present at the browser. This value instructs the Google
-     * authorization server to return a refresh token and an access token the
-     * first time that your application exchanges an authorization code for
-     * tokens.
-     */
-    access_type?: AccessType
 
     /**
      * The hd (hosted domain) parameter streamlines the login process for G Suite
@@ -49,6 +37,19 @@ export interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
     hd?: string
 
     /**
+     * @recommended
+     * Indicates whether your application can refresh access tokens
+     * when the user is not present at the browser. Valid parameter values are
+     * 'online', which is the default value, and 'offline'. Set the value to
+     * 'offline' if your application needs to refresh access tokens when the user
+     * is not present at the browser. This value instructs the Google
+     * authorization server to return a refresh token and an access token the
+     * first time that your application exchanges an authorization code for
+     * tokens.
+     */
+    access_type?: AccessType
+
+    /**
      * Enables applications to use incremental authorization to request
      * access to additional scopes in context. If you set this parameter's value
      * to true and the authorization request is granted, then the new access token
@@ -60,40 +61,37 @@ export interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
     include_granted_scopes?: boolean
 
     /**
-     * If your application knows which user is trying to authenticate,
-     * it can use this parameter to provide a hint to the Google Authentication
-     * Server. The server uses the hint to simplify the login flow either by
-     * prefilling the email field in the sign-in form or by selecting the
-     * appropriate multi-login session. Set the parameter value to an email
-     * address or sub identifier, which is equivalent to the user's Google ID.
+     * When your app knows which user it is trying to authenticate, it can provide this parameter as a hint to the authentication server. Passing this hint suppresses the account chooser,
+     * either pre-fills the email box on the sign-in form, or selects the proper session (if the user is using multiple sign-in), which can help you avoid problems
+     * that occur if your app logs in the wrong user account. The value can be either an email address or the sub
+     * string, which is equivalent to the user's Google ID.
      */
     login_hint?: string
 
     /**
-     * A space-delimited, case-sensitive list of prompts to present the
-     * user. If you don't specify this parameter, the user will be prompted only the first time your app requests access.
+     * A space-delimited, case-sensitive list of prompts to present the user. If you don't specify
+     * this parameter, the user will be prompted only the first time your app requests access.
      * Possible values are:
-     * @value none - Donot display any authentication or consent screens. Must not be specified with other values.
-     * @value consent - the user for consent.
-     * @value select_account - Prompt the user to select an account.
+     * @value none - The authorization server does not display any authentication or user consent screens; it will return an error if the user is not already authenticated and has not pre-configured consent for the requested scopes.
+     * You can use none to check for existing authentication and/or consent.
+     * @value consent - The authorization server prompts the user for consent before returning information to the client.
+     * @value select_account - The authorization server prompts the user to select a user account. This allows a user who has multiple accounts at the authorization server
+     * to select amongst the multiple accounts that they may have current sessions for.
+     * If no value is specified and the user has not previously authorized access, then the user is shown a consent screen.
      */
     prompt?: Prompt
 
     /**
      * @recommended
-     * Specifies what method was used to encode a 'code_verifier'
-     * that will be used during authorization code exchange. This parameter must
-     * be used with the 'code_challenge' parameter. The value of the
-     * 'code_challenge_method' defaults to "plain" if not present in the request
-     * that includes a 'code_challenge'. The only supported values for this
-     * parameter are "S256" or "plain".
+     * Specifies what method was used to encode a 'code_verifier' that will be used during authorization code
+     * exchange. This parameter must be used with the 'code_challenge' parameter. The value of the 'code_challenge_method'
+     * defaults to "plain" if not present in the request that includes a 'code_challenge'.
      */
     code_challenge_method?: CodeChallengeMethod
 
     /**
      * @recommended
-     * Specifies an encoded 'code_verifier' that will be used as a
-     * server-side challenge during authorization code exchange. This parameter
+     * Specifies an encoded 'code_verifier' that will be used as a server-side challenge during authorization code exchange. This parameter
      * must be used with the 'code_challenge' parameter described above.
      */
     code_challenge?: boolean
