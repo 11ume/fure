@@ -1,4 +1,3 @@
-// https://accounts.google.com/.well-known/openid-configuration
 import querystring from 'querystring'
 import {
     IFureOAuth2Provider
@@ -8,8 +7,6 @@ import {
     , IGenerateAuthResult
     , IOAuth2ProviderOptions
     , FureOAuth2Provider
-    , AuthTokenResponse
-    , ResponseError
 } from 'fure-oauth2'
 import {
     IGoogleGenerateAuthOptions
@@ -40,14 +37,14 @@ interface IGenerateGoogleAuthResult extends IGenerateAuthResult {
     codeChallenge?: string
 }
 
-type GetTokenResponse = {
-    error: ResponseError | null
-    value: ITokenCredentialsResponse | null
-}
-
 enum GrantTypes {
     authorizationCode = 'authorization_code'
 }
+
+/**
+ * OpenID Google .well-known
+ * @link https://accounts.google.com/.well-known/openid-configuration
+ */
 
 /**
  * Authentication provider.
@@ -138,13 +135,11 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
         const code = this.getRequiredParam('code', callbackUrlQueryObj)
-        const token = await this.getToken(code, options)
-        return token.value
+        return this.getToken(code, options)
     }
 
     public async getProfile(params: Partial<IProfileParams>) {
-        const res = await this.getUserInfo(params)
-        return res.value
+        return this.getUserInfo(params)
     }
 
     private prepareAuthParams(options: IGoogleGenerateAuthOptions = {}): Partial<IGoogleGenerateAuthOptions> {
@@ -179,27 +174,28 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
     }
 
-    private async getUserInfo(params: Partial<IProfileParams>) {
+    private async getUserInfo(params: Partial<IProfileParams>): Promise<IProfileResponse> {
         params.alt = 'json'
-        const defaultErrorMessage = 'when it was tried to get user info.'
+        const body = querystring.stringify(params)
         const res = await this.request({
             url: this.userInfoUrl
-            , body: querystring.stringify(params)
+            , body
             , method: 'POST'
             , headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         })
 
+        const defaultErrorMessage = 'when it was tried to get user info.'
         const value: IProfileResponse = await res.json()
-        return this.response<IProfileResponse>(res, value, defaultErrorMessage)
+        return this.handleResponse<IProfileResponse>(res, value, defaultErrorMessage)
     }
 
     private async getToken(code: string, {
         clientId
         , redirectUri
         , codeVerifier
-    }: IGetTokenOptions = {}): Promise<GetTokenResponse> {
+    }: IGetTokenOptions = {}): Promise<ITokenCredentialsResponse> {
         const params: Partial<ITokenRequestParams> = {
             code
             , grant_type: GrantTypes.authorizationCode
@@ -209,18 +205,19 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , redirect_uri: redirectUri ?? this.redirectUri
         }
 
-        const defaultErrorMessage = 'when it was tried to get auth access tokens.'
+        const body = querystring.stringify(params)
         const res = await this.request({
             url: this.tokenUrl
-            , body: querystring.stringify(params)
+            , body
             , method: 'POST'
             , headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         })
 
+        const defaultErrorMessage = 'When it was tried to get auth access tokens.'
         const value: ITokenCredentialsResponse = await res.json()
-        return this.response<AuthTokenResponse>(res, value, defaultErrorMessage)
+        return this.handleResponse<ITokenCredentialsResponse>(res, value, defaultErrorMessage)
     }
 }
 

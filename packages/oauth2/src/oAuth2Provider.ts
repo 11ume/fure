@@ -17,21 +17,6 @@ type GenerateAuthUrlParams = {
     [key: string]: string | string[] | boolean
 }
 
-type JsonResponse<T> = {
-    error: ResponseError | null
-    value: T | null
-}
-
-type ResponseSuccessResult<T> = {
-    error: ResponseError | null
-    value: T | null
-}
-
-type ResponseErrorResult = {
-    error: ResponseError
-    value: null
-}
-
 type ResponseErrorBody = {
     error?: string
     error_description?: string
@@ -121,14 +106,9 @@ export class FureOAuth2Provider extends FureProvider {
         return `${this.authenticationUrl}?${queryParams}`
     }
 
-    protected handleResponseSuccess<T>(value: T): ResponseSuccessResult<T> {
-        return {
-            error: null
-            , value
-        }
-    }
-
-    protected handleResponseError(status: number, value: ResponseErrorBody, defaultErrorMessage: string): ResponseErrorResult {
+    protected handleResponseError(status: number
+        , value: ResponseErrorBody
+        , defaultErrorMessage: string): ResponseError {
         const message = value.error ?? defaultErrorMessage
         const description = value.error_description ?? 'No description.'
         const error = {
@@ -137,16 +117,15 @@ export class FureOAuth2Provider extends FureProvider {
             , description
         }
 
-        return {
-            error
-            , value: null
-        }
+        return error
     }
 
-    protected async response<T>(res: Response, value: any, defaultErrorMessage: string): Promise<JsonResponse<T>> {
-        if (res.ok) return this.handleResponseSuccess(value)
+    protected async handleResponse<T>(res: Response
+        , value: T
+        , defaultErrorMessage: string): Promise<T> {
+        if (res.ok) return value
         const err = this.handleResponseError(res.status, value, defaultErrorMessage)
-        const { status, message, description } = err.error
+        const { status, message, description } = err
         throw this.error(status, message, description)
     }
 
