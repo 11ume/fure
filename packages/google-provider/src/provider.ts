@@ -62,6 +62,11 @@ const PROVIDER = 'google'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 
 /**
+ * The base endpoint to revoke tokens.
+ */
+const GOOGLE_REVOKE_TOKEN_URL = 'https://oauth2.googleapis.com/revoke'
+
+/**
  * Base URL for handle authentication.
  */
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
@@ -88,6 +93,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     readonly codeChallengeMethod: CodeChallengeMethod
     readonly includeGrantedScopes: boolean
     readonly userInfoUrl: string
+    readonly revokeTokenUrl: string
     constructor({
         clientId
         , clientSecret
@@ -121,6 +127,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         this.codeChallengeMethod = codeChallengeMethod
         this.includeGrantedScopes = includeGrantedScopes
         this.userInfoUrl = GOOGLE_USER_INFO_URL
+        this.revokeTokenUrl = GOOGLE_REVOKE_TOKEN_URL
     }
 
     public generateAuthUrl(params: IGoogleGenerateAuthOptions = {}): IGenerateGoogleAuthResult {
@@ -166,6 +173,25 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const defaultErrorMessage = 'In request for get user info.'
         const profile: IProfileResponse = await res.json()
         return this.handleResponse<IProfileResponse>(res, profile, defaultErrorMessage)
+    }
+
+    public async revokeToken(accessToken: string) {
+        const body = querystring.stringify({
+            token: accessToken
+        })
+
+        const res = await this.request({
+            url: this.revokeTokenUrl
+            , body
+            , method: 'POST'
+            , headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+
+        const defaultErrorMessage = 'In request for revoke authentication access token.'
+        const value = await res.json()
+        return this.handleResponse(res, value, defaultErrorMessage)
     }
 
     public async getTokens(code: string, {

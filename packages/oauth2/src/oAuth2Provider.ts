@@ -46,7 +46,7 @@ export interface IGenerateAuthResult {
 export interface IFureOAuth2Provider<T> {
     generateAuthUrl(options: Partial<IGenerateAuthOptions>): IGenerateAuthResult
     authenticate(url: string, options?: IGetTokenOptions): Promise<T>
-    revokeToken?(): Promise<any>
+    revokeToken?(accessToken: string): Promise<any>
     verifyToken?(): Promise<any>
     refreshToken?(): Promise<any>
 }
@@ -121,7 +121,7 @@ export class FureOAuth2Provider extends FureProvider {
 
     protected async handleResponse<T>(res: Response
         , value: T
-        , defaultErrorMessage: string): Promise<T> {
+        , defaultErrorMessage = 'Unknown'): Promise<T> {
         if (res.ok) return value
         const err = this.handleResponseError(res.status, value, defaultErrorMessage)
         const { status, message, description } = err
