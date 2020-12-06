@@ -23,7 +23,7 @@ const createFureOAuth2GoogleProvider = (options?: Partial<GoogleOAuth2ProviderOp
 
 test('create generic authentication URL', (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider()
-    const auth = googleAauth2.generateAuth()
+    const auth = googleAauth2.generateAuthUrl()
     const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
@@ -45,7 +45,7 @@ test('create generic authentication URL whit uncommon params', (t) => {
     const codeChallenge = true
     const codeChallengeMethod = CodeChallengeMethod.S256
 
-    const auth = googleAauth2.generateAuth({
+    const auth = googleAauth2.generateAuthUrl({
         hd
         , login_hint: loginHint
         , code_challenge: codeChallenge
@@ -87,7 +87,7 @@ test('create generic authentication URL piorice params passed in the method', (t
     const includeGrantedScopes = false
     const state = false
 
-    const auth = googleAauth2.generateAuth({
+    const auth = googleAauth2.generateAuthUrl({
         state
         , prompt
         , scope
@@ -119,7 +119,7 @@ test('create generic authentication URL whit state enabled', (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider({
         state: true
     })
-    const auth = googleAauth2.generateAuth()
+    const auth = googleAauth2.generateAuthUrl()
     const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
@@ -162,12 +162,12 @@ test('get access token', async (t) => {
     const res = await googleAauth2.authenticate('/auth?code=123')
     mock.done()
 
-    t.is(res.scope, scope)
-    t.is(res.id_token, idToken)
-    t.is(res.token_type, tokenType)
-    t.is(res.expires_in, expiresIn)
-    t.is(res.access_token, accessToken)
-    t.is(res.refresh_token, refreshToken)
+    t.is(res.token.scope, scope)
+    t.is(res.token.id_token, idToken)
+    t.is(res.token.token_type, tokenType)
+    t.is(res.token.expires_in, expiresIn)
+    t.is(res.token.access_token, accessToken)
+    t.is(res.token.refresh_token, refreshToken)
 })
 
 test('get access token error', async (t) => {

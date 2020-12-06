@@ -62,17 +62,3 @@ export interface ITokenCredentialsResponse {
    */
   access_token?: string
 }
-
-export interface ITokenCredentialsError {
-  /**
-   * Error message.
-   */
-  error?: string
-
-  /**
-   * Error description message.
-   */
-  error_description?: string
-}
-
-export type AuthTokenResponse = ITokenCredentialsResponse & ITokenCredentialsError

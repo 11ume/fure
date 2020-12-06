@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { createPkce } from 'fure-oauth2-pkce'
 import { Fetch, fetch } from './fetch'
 import { IGenerateAuthOptions, IGetTokenOptions } from './options'
-import { ITokenCredentialsResponse } from './credentials'
 
 type GeneratePkceResult = {
     codeVerifier: string
@@ -17,24 +16,20 @@ type GenerateAuthUrlParams = {
     [key: string]: string | string[] | boolean
 }
 
-type JsonResponse<T> = {
-    error: ResponseError | null
-    value: T | null
-}
-
-type ResponseSuccessResult<T> = {
-    error: ResponseError | null
-    value: T | null
-}
-
-type ResponseErrorResult = {
-    error: ResponseError
-    value: null
-}
-
 type ResponseErrorBody = {
     error?: string
     error_description?: string
+}
+
+type RequestHeaders = {
+    [key: string]: string
+}
+
+type PostRequestOptions = {
+    url: string
+    body: string
+    method: string
+    headers: RequestHeaders
 }
 
 export type ResponseError = {
@@ -48,9 +43,9 @@ export interface IGenerateAuthResult {
     state?: string
 }
 
-export interface IFureOAuth2Provider {
-    generateAuth(options: Partial<IGenerateAuthOptions>): IGenerateAuthResult
-    authenticate(url: string, options?: IGetTokenOptions): Promise<ITokenCredentialsResponse>
+export interface IFureOAuth2Provider<T> {
+    generateAuthUrl(options: Partial<IGenerateAuthOptions>): IGenerateAuthResult
+    authenticate(url: string, options?: IGetTokenOptions): Promise<T>
     revokeToken?(): Promise<any>
     verifyToken?(): Promise<any>
     refreshToken?(): Promise<any>
@@ -110,44 +105,39 @@ export class FureOAuth2Provider extends FureProvider {
         return `${this.authenticationUrl}?${queryParams}`
     }
 
-    protected handleResponseSuccess<T>(body: T): ResponseSuccessResult<T> {
-        return {
-            error: null
-            , value: body
-        }
-    }
-
-    protected handleResponseError(status: number, body: ResponseErrorBody): ResponseErrorResult {
-        const message = body.error ?? 'Get token response error.'
-        const description = body.error_description ?? 'No description.'
+    protected handleResponseError(status: number
+        , value: ResponseErrorBody
+        , defaultErrorMessage: string): ResponseError {
+        const message = value.error ?? defaultErrorMessage
+        const description = value.error_description ?? 'No description.'
         const error = {
             status
             , message
             , description
         }
 
-        return {
-            error
-            , value: null
-        }
+        return error
     }
 
-    protected async handleJsonResponse<T>(res: Response): Promise<JsonResponse<T>> {
-        const body = await res.json()
-        if (res.ok) return this.handleResponseSuccess(body)
-        const err = this.handleResponseError(res.status, body)
-        const { status, message, description } = err.error
+    protected async handleResponse<T>(res: Response
+        , value: T
+        , defaultErrorMessage: string): Promise<T> {
+        if (res.ok) return value
+        const err = this.handleResponseError(res.status, value, defaultErrorMessage)
+        const { status, message, description } = err
         throw this.error(status, message, description)
     }
 
-    protected makePostRequest<P extends querystring.ParsedUrlQueryInput>(url: string, params: Partial<P>): Promise<Response> {
-        const body = querystring.stringify(params)
+    protected request({
+        url
+        , body
+        , method
+        , headers
+    }: PostRequestOptions): Promise<Response> {
         const res = this.fetch(url, {
             body
-            , method: 'POST'
-            , headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
+            , method
+            , headers
         })
 
         return res
