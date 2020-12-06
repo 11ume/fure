@@ -1,4 +1,5 @@
 // https://accounts.google.com/.well-known/openid-configuration
+import querystring from 'querystring'
 import {
     IFureOAuth2Provider
     , IGetTokenOptions
@@ -180,8 +181,18 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
 
     private async getUserInfo(params: Partial<IProfileParams>) {
         params.alt = 'json'
-        const res = await this.makePostRequest(this.userInfoUrl, params)
-        return this.handleJsonResponse<IProfileResponse>(res)
+        const defaultErrorMessage = 'when it was tried to get user info.'
+        const res = await this.request({
+            url: this.userInfoUrl
+            , body: querystring.stringify(params)
+            , method: 'POST'
+            , headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+
+        const value: IProfileResponse = await res.json()
+        return this.response<IProfileResponse>(res, value, defaultErrorMessage)
     }
 
     private async getToken(code: string, {
@@ -198,8 +209,18 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , redirect_uri: redirectUri ?? this.redirectUri
         }
 
-        const res = await this.makePostRequest(this.tokenUrl, params)
-        return this.handleJsonResponse<AuthTokenResponse>(res)
+        const defaultErrorMessage = 'when it was tried to get auth access tokens.'
+        const res = await this.request({
+            url: this.tokenUrl
+            , body: querystring.stringify(params)
+            , method: 'POST'
+            , headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+
+        const value: ITokenCredentialsResponse = await res.json()
+        return this.response<AuthTokenResponse>(res, value, defaultErrorMessage)
     }
 }
 

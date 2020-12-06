@@ -37,6 +37,17 @@ type ResponseErrorBody = {
     error_description?: string
 }
 
+type RequestHeaders = {
+    [key: string]: string
+}
+
+type PostRequestOptions = {
+    url: string
+    body: string
+    method: string
+    headers: RequestHeaders
+}
+
 export type ResponseError = {
     status: number
     message: string
@@ -110,16 +121,16 @@ export class FureOAuth2Provider extends FureProvider {
         return `${this.authenticationUrl}?${queryParams}`
     }
 
-    protected handleResponseSuccess<T>(body: T): ResponseSuccessResult<T> {
+    protected handleResponseSuccess<T>(value: T): ResponseSuccessResult<T> {
         return {
             error: null
-            , value: body
+            , value
         }
     }
 
-    protected handleResponseError(status: number, body: ResponseErrorBody): ResponseErrorResult {
-        const message = body.error ?? 'Get token response error.'
-        const description = body.error_description ?? 'No description.'
+    protected handleResponseError(status: number, value: ResponseErrorBody, defaultErrorMessage: string): ResponseErrorResult {
+        const message = value.error ?? defaultErrorMessage
+        const description = value.error_description ?? 'No description.'
         const error = {
             status
             , message
@@ -132,22 +143,23 @@ export class FureOAuth2Provider extends FureProvider {
         }
     }
 
-    protected async handleJsonResponse<T>(res: Response): Promise<JsonResponse<T>> {
-        const body = await res.json()
-        if (res.ok) return this.handleResponseSuccess(body)
-        const err = this.handleResponseError(res.status, body)
+    protected async response<T>(res: Response, value: any, defaultErrorMessage: string): Promise<JsonResponse<T>> {
+        if (res.ok) return this.handleResponseSuccess(value)
+        const err = this.handleResponseError(res.status, value, defaultErrorMessage)
         const { status, message, description } = err.error
         throw this.error(status, message, description)
     }
 
-    protected makePostRequest<P extends querystring.ParsedUrlQueryInput>(url: string, params: Partial<P>): Promise<Response> {
-        const body = querystring.stringify(params)
+    protected request({
+        url
+        , body
+        , method
+        , headers
+    }: PostRequestOptions): Promise<Response> {
         const res = this.fetch(url, {
             body
-            , method: 'POST'
-            , headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
+            , method
+            , headers
         })
 
         return res
