@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { createPkce } from 'fure-oauth2-pkce'
 import { Fetch, fetch } from './fetch'
 import { IGenerateAuthOptions, IGetTokenOptions } from './options'
-import { ITokenCredentialsResponse } from './credentials'
 
 type GeneratePkceResult = {
     codeVerifier: string
@@ -44,9 +43,9 @@ export interface IGenerateAuthResult {
     state?: string
 }
 
-export interface IFureOAuth2Provider {
+export interface IFureOAuth2Provider<T> {
     generateAuth(options: Partial<IGenerateAuthOptions>): IGenerateAuthResult
-    authenticate(url: string, options?: IGetTokenOptions): Promise<ITokenCredentialsResponse>
+    authenticate(url: string, options?: IGetTokenOptions): Promise<T>
     revokeToken?(): Promise<any>
     verifyToken?(): Promise<any>
     refreshToken?(): Promise<any>
