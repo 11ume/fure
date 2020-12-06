@@ -30,7 +30,7 @@ export interface ITokenRequestParams {
   grant_type: string
 }
 
-export interface ITokenCredentials {
+export interface ITokenCredentialsResponse {
   /**
    * The scopes of access granted by the access_token expressed as a list of space-delimited, case-sensitive strings.
    */
@@ -75,4 +75,4 @@ export interface ITokenCredentialsError {
   error_description?: string
 }
 
-export type AuthTokenResponse = ITokenCredentials & ITokenCredentialsError
+export type AuthTokenResponse = ITokenCredentialsResponse & ITokenCredentialsError

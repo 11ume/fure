@@ -1,15 +1,14 @@
-import querystring from 'querystring'
-import { Response } from 'node-fetch'
+// https://accounts.google.com/.well-known/openid-configuration
 import {
     IFureOAuth2Provider
     , IGetTokenOptions
-    , ITokenCredentials
-    , ITokenCredentialsError
+    , ITokenCredentialsResponse
     , ITokenRequestParams
-    , GenerateAuthResult
+    , IGenerateAuthResult
     , IOAuth2ProviderOptions
     , FureOAuth2Provider
     , AuthTokenResponse
+    , ResponseError
 } from 'fure-oauth2'
 import {
     IGoogleGenerateAuthOptions
@@ -35,22 +34,19 @@ export type GoogleOAuth2ProviderOptions = Omit<IGoogleOAuth2ProviderSelfOptions,
     | 'tokenUrl'
     | 'authenticationUrl'>
 
-type GetTokenResponseError = {
-    status: number
-    message: string
-    description: string
+interface IGenerateGoogleAuthResult extends IGenerateAuthResult {
+    codeVerifier?: string
+    codeChallenge?: string
 }
 
 type GetTokenResponse = {
-    error: GetTokenResponseError
-    credentials: ITokenCredentials
+    error: ResponseError | null
+    value: ITokenCredentialsResponse | null
 }
 
 enum GrantTypes {
     authorizationCode = 'authorization_code'
 }
-
-// https://accounts.google.com/.well-known/openid-configuration
 
 /**
  * Authentication provider.
@@ -124,7 +120,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         this.userInfoUrl = GOOGLE_USER_INFO_URL
     }
 
-    public generateAuth(params: IGoogleGenerateAuthOptions = {}): GenerateAuthResult {
+    public generateAuth(params: IGoogleGenerateAuthOptions = {}): IGenerateGoogleAuthResult {
         const preparedParams = this.prepareAuthParams(params)
         const state = this.generateAuthStateParam(preparedParams.state)
         const { codeVerifier, codeChallenge } = this.generatePkce(preparedParams.code_challenge)
@@ -137,28 +133,23 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
     }
 
-    public authenticate(currentUrl: string, options?: IGetTokenOptions): Promise<ITokenCredentials> {
+    public async authenticate(currentUrl: string, options?: IGetTokenOptions): Promise<ITokenCredentialsResponse> {
         const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
         const code = this.getRequiredParam('code', callbackUrlQueryObj)
-        return this.getTokenOnAuthenticate(code, options)
+        const token = await this.getToken(code, options)
+        return token.value
     }
 
-    public async getUserInfo(params: Partial<IProfileParams>): Promise<IProfileResponse> {
+    public async getProfile(params: Partial<IProfileParams>) {
+        const res = await this.getUserInfo(params)
+        return res.value
+    }
+
+    private async getUserInfo(params: Partial<IProfileParams>) {
         params.alt = 'json'
-        const res = await this.makeGetUserInfoRequest(params)
-        const body = await res.json()
-        return body
-    }
-
-    private async getTokenOnAuthenticate(code: string, options: IGetTokenOptions): Promise<ITokenCredentials> {
-        const res = await this.getToken(code, options)
-        if (res.error) {
-            const { status, message, description } = res.error
-            throw this.error(status, message, description)
-        }
-
-        return res.credentials
+        const res = await this.makePostRequest(this.userInfoUrl, params)
+        return this.handleJsonResponse<IProfileResponse>(res)
     }
 
     private prepareAuthParams(options: IGoogleGenerateAuthOptions = {}): Partial<IGoogleGenerateAuthOptions> {
@@ -198,7 +189,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , redirectUri
         , codeVerifier
     }: IGetTokenOptions = {}): Promise<GetTokenResponse> {
-        const params = {
+        const params: Partial<ITokenRequestParams> = {
             code
             , grant_type: GrantTypes.authorizationCode
             , code_verifier: codeVerifier
@@ -207,59 +198,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , redirect_uri: redirectUri ?? this.redirectUri
         }
 
-        const res = await this.makeGetTokenRequest(params)
-        return this.handleGetTokenResponse(res)
-    }
-
-    private handleGetTokenSuccess(body: ITokenCredentials): GetTokenResponse {
-        return {
-            error: null
-            , credentials: body
-        }
-    }
-
-    private handleGetTokenError(status: number, body: ITokenCredentialsError): GetTokenResponse {
-        const message = body.error ?? 'Get token response error.'
-        const description = body.error_description ?? 'No description.'
-        const error = {
-            status
-            , message
-            , description
-        }
-        return {
-            error
-            , credentials: null
-        }
-    }
-
-    private async handleGetTokenResponse(res: Response): Promise<GetTokenResponse> {
-        const body: AuthTokenResponse = await res.json()
-        if (res.ok) return this.handleGetTokenSuccess(body)
-        return this.handleGetTokenError(res.status, body)
-    }
-
-    private makeGetTokenRequest(params: Partial<ITokenRequestParams>): Promise<Response> {
-        const body = querystring.stringify(params)
-        return this.fetch(this.tokenUrl, {
-            body
-            , method: 'POST'
-            , headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        })
-    }
-
-    private makeGetUserInfoRequest(params: Partial<IProfileParams>): Promise<Response> {
-        const body = querystring.stringify(params)
-        const res = this.fetch(this.userInfoUrl, {
-            body
-            , method: 'POST'
-            , headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        })
-
-        return res
+        const res = await this.makePostRequest(this.tokenUrl, params)
+        return this.handleJsonResponse<AuthTokenResponse>(res)
     }
 }
 
