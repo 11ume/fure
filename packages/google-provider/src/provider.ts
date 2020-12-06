@@ -146,12 +146,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return res.value
     }
 
-    private async getUserInfo(params: Partial<IProfileParams>) {
-        params.alt = 'json'
-        const res = await this.makePostRequest(this.userInfoUrl, params)
-        return this.handleJsonResponse<IProfileResponse>(res)
-    }
-
     private prepareAuthParams(options: IGoogleGenerateAuthOptions = {}): Partial<IGoogleGenerateAuthOptions> {
         const {
             hd = this.hd
@@ -182,6 +176,12 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             , code_challenge_method
             , include_granted_scopes
         }
+    }
+
+    private async getUserInfo(params: Partial<IProfileParams>) {
+        params.alt = 'json'
+        const res = await this.makePostRequest(this.userInfoUrl, params)
+        return this.handleJsonResponse<IProfileResponse>(res)
     }
 
     private async getToken(code: string, {
