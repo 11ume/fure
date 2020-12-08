@@ -2,6 +2,7 @@ import querystring from 'querystring'
 import {
     IFureOAuth2Provider
     , IGetTokenOptions
+    , IAuthenticateOptions
     , ITokensCredentialsResponse
     , ITokensRequestParams
     , IGenerateAuthResult
@@ -37,7 +38,7 @@ interface IGenerateGoogleAuthResult extends IGenerateAuthResult {
     codeChallenge?: string | null
 }
 
-interface AuthResult {
+interface IAuthResult {
     tokens: ITokensCredentialsResponse
     profile: IProfileResponse
 }
@@ -78,14 +79,12 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_USER_INFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo'
 
 /**
- * A space-delimited list of scopes that identify the resources that your application
- * could access on the user's behalf. Scopes enable your application to only request access
- * to the resources that it needs while also enabling users to control the amount of access that
- * they grant to your application.
+ * Default list of scopes that identify the resources that your application
+ * could access on the user's behalf.
  */
 const GOOGOLE_SCOPE = ['openid', 'profile', 'email']
 
-export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider<AuthResult> {
+export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider<IAuthResult> {
     readonly hd: string
     readonly prompt: Prompt
     readonly accessType: AccessType
@@ -144,11 +143,11 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
     }
 
-    public async authenticate(currentUrl: string, options?: IGetTokenOptions): Promise<AuthResult> {
+    public async authenticate(currentUrl: string, options?: IAuthenticateOptions): Promise<IAuthResult> {
         const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
         const code = this.getRequiredParam('code', callbackUrlQueryObj)
-        const tokens = await this.getTokens(code, options)
+        const tokens = await this.getTokens(code, options?.token)
         const profile = await this.getUserInfo({
             oauth_token: tokens.access_token
         })
