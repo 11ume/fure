@@ -30,7 +30,7 @@ export interface ITokensRequestParams {
   grant_type: string
 }
 
-export interface ITokensCredentialsResponse {
+export interface ITokensCredentials {
   /**
    * The scopes of access granted by the access_token expressed as a list of space-delimited, case-sensitive strings.
    */

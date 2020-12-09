@@ -159,7 +159,7 @@ test('get access token', async (t) => {
             , refresh_token: refreshToken
         })
 
-    const res = await googleAauth2.authenticate('/auth?code=123')
+    const res = await googleAauth2.auth('/auth?code=123')
     mock.done()
 
     t.is(res.tokens.scope, scope)
@@ -184,7 +184,7 @@ test('get access token error', async (t) => {
             , error_description: 'something has gone wrong description'
         })
 
-    const err: FureError = await t.throwsAsync(() => googleAauth2.authenticate('/auth?code=123'))
+    const err: FureError = await t.throwsAsync(() => googleAauth2.auth('/auth?code=123'))
     mock.done()
 
     t.is(err.statusCode, 400)
