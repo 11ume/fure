@@ -37,7 +37,9 @@ export interface ITokensCredentials {
   scope?: string
 
   /**
-   * Contains identity information about the user that is digitally signed by Google.
+   * Contains identity information about the user that is digitally signed by OAuth 2.0 provider.
+   * Note: This property is only returned if your request included an identity scope, such as openid, profile, or email.
+   * That value is a JSON Web Token (JWT) that contains digitally signed identity information about the user.
    */
   id_token?: string
 
@@ -47,18 +49,17 @@ export interface ITokensCredentials {
   token_type?: string
 
   /**
-   * The time in ms at which this token is thought to expire.
+   * The remaining lifetime of the access token in seconds.
    */
   expires_in?: number
 
   /**
-   * This field is only present if the access_type parameter was set to offline in the authentication request.
-   * For details, see Refresh tokens.
+   * This field is only present if the access_type parameter was set to offline in the first authentication request.
    */
   refresh_token?: string
 
   /**
-   * A token that can be sent to a Google API.
+   * The token that your application sends to authorize a OAuth 2.0 provider API request.
    */
   access_token?: string
 }

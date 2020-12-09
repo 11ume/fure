@@ -38,8 +38,12 @@ interface IGenerateGoogleAuthResult extends IGenerateAuthResult {
     codeChallenge?: string | null
 }
 
+interface ITokensCredentialsOwn extends ITokensCredentials {
+    expires_in_date: number
+}
+
 interface IAuthResult {
-    tokens: ITokensCredentials
+    tokens: ITokensCredentialsOwn
     profile: IProfileResponse
 }
 
@@ -143,11 +147,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
     }
 
-    public async refreshAuth(tokens: ITokensCredentials) {
-        tokens.expires_in <= new Date().getTime() + 60 * 1000
-        return this.refreshToken(tokens.refresh_token)
-    }
-
     public async auth(currentUrl: string, options?: IAuthenticateOptions): Promise<IAuthResult> {
         const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
@@ -157,10 +156,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
             oauth_token: tokens.access_token
         })
 
-        tokens.expires_in = new Date().getTime() + tokens.expires_in * 1000
-
         return {
-            tokens
+            tokens: this.addExpiresInDateToTokens(tokens)
             , profile
         }
     }
@@ -180,6 +177,15 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const defaultErrorMessage = 'In request for get user info.'
         const profile: IProfileResponse = await res.json()
         return this.handleResponse<IProfileResponse>(res, profile, defaultErrorMessage)
+    }
+
+    public async refreshAuth(tokens: ITokensCredentialsOwn) {
+        const currentTime = (new Date().getTime() / 1000)
+        if (tokens.expires_in_date <= currentTime) {
+            return this.refreshToken(tokens.refresh_token)
+        }
+
+        return null
     }
 
     public async revokeToken(accessToken: string) {
@@ -251,6 +257,13 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const defaultErrorMessage = 'In request for get access tokens.'
         const tokens: ITokensCredentials = await res.json()
         return this.handleResponse<ITokensCredentials>(res, tokens, defaultErrorMessage)
+    }
+
+    private addExpiresInDateToTokens(tokens: ITokensCredentials): ITokensCredentialsOwn {
+        return {
+            ...tokens
+            , expires_in_date: (new Date().getTime() / 1000) + tokens.expires_in
+        }
     }
 
     private prepareAuthParams(options: IGoogleGenerateAuthOptions = {}): Partial<IGoogleGenerateAuthOptions> {
