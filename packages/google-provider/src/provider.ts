@@ -38,12 +38,12 @@ interface IGenerateGoogleAuthResult extends IGenerateAuthResult {
     codeChallenge?: string | null
 }
 
-interface ITokensCredentialsOwn extends ITokensCredentials {
-    expires_in_date: number
+interface ITokensCredentialsFinal extends ITokensCredentials {
+    expiry_date: number
 }
 
 interface IAuthResult {
-    tokens: ITokensCredentialsOwn
+    tokens: ITokensCredentialsFinal
     profile: IProfileResponse
 }
 
@@ -134,7 +134,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         this.revokeTokenUrl = GOOGLE_REVOKE_TOKEN_URL
     }
 
-    public generateAuthUrl(params: IGoogleGenerateAuthOptions = {}): IGenerateGoogleAuthResult {
+    public authGenerateUrl(params: IGoogleGenerateAuthOptions = {}): IGenerateGoogleAuthResult {
         const preparedParams = this.prepareAuthParams(params)
         const state = this.generateAuthStateParam(preparedParams.state)
         const { codeVerifier, codeChallenge } = this.generatePkce(preparedParams.code_challenge)
@@ -157,9 +157,19 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         })
 
         return {
-            tokens: this.addExpiresInDateToTokens(tokens)
+            tokens: this.addTokenExpiryDate(tokens)
             , profile
         }
+    }
+
+    public async authRefresh(tokens: ITokensCredentialsFinal) {
+        const seconds = 60 * 5
+        const currentTimeInSeconds = (new Date().getTime() / 1000) - seconds
+        if (tokens.expiry_date <= currentTimeInSeconds) {
+            return this.refreshToken(tokens.refresh_token)
+        }
+
+        return null
     }
 
     public async getUserInfo(params: Partial<IProfileParams>): Promise<IProfileResponse> {
@@ -177,15 +187,6 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const defaultErrorMessage = 'In request for get user info.'
         const profile: IProfileResponse = await res.json()
         return this.handleResponse<IProfileResponse>(res, profile, defaultErrorMessage)
-    }
-
-    public async refreshAuth(tokens: ITokensCredentialsOwn) {
-        const currentTime = (new Date().getTime() / 1000)
-        if (tokens.expires_in_date <= currentTime) {
-            return this.refreshToken(tokens.refresh_token)
-        }
-
-        return null
     }
 
     public async revokeToken(accessToken: string) {
@@ -259,10 +260,11 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return this.handleResponse<ITokensCredentials>(res, tokens, defaultErrorMessage)
     }
 
-    private addExpiresInDateToTokens(tokens: ITokensCredentials): ITokensCredentialsOwn {
+    private addTokenExpiryDate(tokens: ITokensCredentials): ITokensCredentialsFinal {
+        const expiryDate = (new Date().getTime() / 1000) + tokens.expires_in
         return {
             ...tokens
-            , expires_in_date: (new Date().getTime() / 1000) + tokens.expires_in
+            , expiry_date: expiryDate
         }
     }
 
