@@ -42,11 +42,6 @@ interface ITokensCredentialsFinal extends ITokensCredentials {
     expiry_date: number
 }
 
-interface IAuthResult {
-    tokens: ITokensCredentialsFinal
-    profile: IProfileResponse
-}
-
 enum GrantTypes {
     authorizationCode = 'authorization_code'
     , refreshToken = 'refresh_token'
@@ -88,7 +83,7 @@ const GOOGLE_USER_INFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo'
  */
 const GOOGOLE_SCOPE = ['openid', 'profile', 'email']
 
-export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider<IAuthResult> {
+export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider<ITokensCredentialsFinal> {
     readonly hd: string
     readonly prompt: Prompt
     readonly accessType: AccessType
@@ -147,28 +142,16 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
     }
 
-    public async auth(currentUrl: string, options?: IAuthenticateOptions): Promise<IAuthResult> {
+    public async auth(currentUrl: string, options?: IAuthenticateOptions): Promise<ITokensCredentialsFinal> {
         const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
         const code = this.getRequiredParam('code', callbackUrlQueryObj)
-        const tokens = await this.getTokens(code, options?.token)
-        const profile = await this.getUserInfo({
-            oauth_token: tokens.access_token
-        })
-
-        return {
-            tokens: this.addTokenExpiryDate(tokens)
-            , profile
-        }
+        const tokenCredentials = await this.getTokensCredentials(code, options?.token)
+        return this.addTokenExpiryDate(tokenCredentials)
     }
 
-    public async authRefresh(tokens: ITokensCredentialsFinal) {
-        const seconds = 60 * 5
-        const currentTimeInSeconds = (new Date().getTime() / 1000) - seconds
-        if (tokens.expiry_date <= currentTimeInSeconds) {
-            return this.refreshToken(tokens.refresh_token)
-        }
-
+    public async authRefresh(refreshToken:string, expiryDate: number): Promise<ITokensCredentials> {
+        if (this.calcTokenExpiryDate(expiryDate)) return this.refreshToken(refreshToken)
         return null
     }
 
@@ -208,30 +191,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return this.handleResponse(res, value, defaultErrorMessage)
     }
 
-    public async refreshToken(refreshToken: string, clientId?: string) {
-        const params = {
-            grant_type: GrantTypes.refreshToken
-            , client_secret: this.clientSecret
-            , client_id: clientId ?? this.clientId
-            , refresh_token: refreshToken
-        }
-
-        const body = querystring.stringify(params)
-        const res = await this.request({
-            url: this.tokenUrl
-            , body
-            , method: 'POST'
-            , headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        })
-
-        const defaultErrorMessage = 'In request for refresh access tokens.'
-        const tokens = await res.json()
-        return this.handleResponse(res, tokens, defaultErrorMessage)
-    }
-
-    public async getTokens(code: string, {
+    protected async getTokensCredentials(code: string, {
         clientId
         , redirectUri
         , codeVerifier
@@ -260,7 +220,36 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return this.handleResponse<ITokensCredentials>(res, tokens, defaultErrorMessage)
     }
 
-    private addTokenExpiryDate(tokens: ITokensCredentials): ITokensCredentialsFinal {
+    protected async refreshToken(refreshToken: string, clientId?: string): Promise<ITokensCredentials> {
+        const params = {
+            grant_type: GrantTypes.refreshToken
+            , client_secret: this.clientSecret
+            , client_id: clientId ?? this.clientId
+            , refresh_token: refreshToken
+        }
+
+        const body = querystring.stringify(params)
+        const res = await this.request({
+            url: this.tokenUrl
+            , body
+            , method: 'POST'
+            , headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+
+        const defaultErrorMessage = 'In request for refresh access tokens.'
+        const tokens = await res.json()
+        return this.handleResponse(res, tokens, defaultErrorMessage)
+    }
+
+    protected calcTokenExpiryDate(expiryDate: number): boolean {
+        const seconds = 60 * 5
+        const currentTimeInSeconds = (new Date().getTime() / 1000) - seconds
+        return expiryDate <= currentTimeInSeconds
+    }
+
+    protected addTokenExpiryDate(tokens: ITokensCredentials): ITokensCredentialsFinal {
         const expiryDate = (new Date().getTime() / 1000) + tokens.expires_in
         return {
             ...tokens
@@ -268,7 +257,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         }
     }
 
-    private prepareAuthParams(options: IGoogleGenerateAuthOptions = {}): Partial<IGoogleGenerateAuthOptions> {
+    protected prepareAuthParams(options: IGoogleGenerateAuthOptions = {}): Partial<IGoogleGenerateAuthOptions> {
         const {
             hd = this.hd
             , state = this.state

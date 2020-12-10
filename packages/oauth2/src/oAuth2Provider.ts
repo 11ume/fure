@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { createPkce } from 'fure-oauth2-pkce'
 import { Fetch, fetch } from './fetch'
 import { IGenerateAuthOptions, IGetTokenOptions } from './options'
+import { ITokensCredentials } from './credentials'
 
 type GeneratePkceResult = {
     codeVerifier: string
@@ -50,9 +51,9 @@ export interface IAuthenticateOptions {
 export interface IFureOAuth2Provider<T> {
     authGenerateUrl(options: Partial<IGenerateAuthOptions>): IGenerateAuthResult
     auth(url: string, options?: IAuthenticateOptions): Promise<T>
-    revokeToken?(accessToken: string): Promise<any>
-    refreshToken?(clientId: string, refreshToken: string): Promise<any>
-    verifyToken?(): Promise<any>
+    authRefresh?(refreshToken:string, expiryDate: number): Promise<ITokensCredentials>
+    authRevoke?(accessToken: string): Promise<any>
+    authVerify?(): Promise<any>
 }
 
 export interface IOAuth2ProviderOptions {
@@ -100,7 +101,7 @@ export class FureOAuth2Provider extends FureProvider {
         this.parsedRedirectUrl = new URL(redirectUri)
     }
 
-    public generateAuthenticationUrl(params: GenerateAuthUrlParams
+    protected generateAuthenticationUrl(params: GenerateAuthUrlParams
         , state: string
         , codeChallenge: string): string {
         const preparedParams = this.prepareAuthUrlParams(params, state, codeChallenge)
