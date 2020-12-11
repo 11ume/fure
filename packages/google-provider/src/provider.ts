@@ -95,7 +95,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
         clientId
         , clientSecret
         , redirectUri
-        , state = false
+        , state = true
         , scope = GOOGOLE_SCOPE
         , hd = null
         , prompt = null
@@ -169,8 +169,12 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
         })
 
         const defaultErrorMessage = 'In request for get user info.'
-        const profile: IProfileResponse = await res.json()
-        return this.handleResponse<IProfileResponse>(res, profile, defaultErrorMessage)
+        const value: IProfileResponse = await res.json()
+        return this.response<IProfileResponse>({
+            res
+            , value
+            , defaultErrorMessage
+        })
     }
 
     public async revokeToken(accessToken: string) {
@@ -189,7 +193,11 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
 
         const defaultErrorMessage = 'In request for revoke authentication access token.'
         const value = await res.json()
-        return this.handleResponse(res, value, defaultErrorMessage)
+        return this.response({
+            res
+            , value
+            , defaultErrorMessage
+        })
     }
 
     protected async getTokensCredentials(code: string, options: ITokenGetOptions = {}): Promise<ITokenCredentials> {
@@ -218,8 +226,12 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
         })
 
         const defaultErrorMessage = 'In request for get access tokens.'
-        const tokens: ITokenCredentials = await res.json()
-        return this.handleResponse<ITokenCredentials>(res, tokens, defaultErrorMessage)
+        const value: ITokenCredentials = await res.json()
+        return this.response<ITokenCredentials>({
+            res
+            , value
+            , defaultErrorMessage
+        })
     }
 
     protected async refreshToken(refreshToken: string, clientId?: string): Promise<ITokenCredentials> {
@@ -241,8 +253,12 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
         })
 
         const defaultErrorMessage = 'In request for refresh access tokens.'
-        const tokens = await res.json()
-        return this.handleResponse(res, tokens, defaultErrorMessage)
+        const value = await res.json()
+        return this.response({
+            res
+            , value
+            , defaultErrorMessage
+        })
     }
 
     protected checkTokenExpiryDate(tokenExpiryDate: number, anticipationTime?: number): boolean {
