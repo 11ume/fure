@@ -26,6 +26,7 @@ export interface IGoogleOAuth2ProviderSelfOptions extends IOAuth2ProviderOptions
     readonly codeChallenge?: boolean
     readonly codeChallengeMethod?: CodeChallengeMethod
     readonly includeGrantedScopes?: boolean
+    readonly tokenRefreshAnticipationTime?: number
 }
 
 export type GoogleOAuth2ProviderOptions = Omit<IGoogleOAuth2ProviderSelfOptions,
@@ -83,7 +84,8 @@ const GOOGLE_USER_INFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo'
  */
 const GOOGOLE_SCOPE = ['openid', 'profile', 'email']
 
-export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFureOAuth2Provider<ITokensCredentialsFinal> {
+export class FureGoogleOAuth2Provider extends FureOAuth2Provider
+    implements IFureOAuth2Provider<ITokensCredentialsFinal> {
     readonly hd: string
     readonly prompt: Prompt
     readonly accessType: AccessType
@@ -91,6 +93,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
     readonly codeChallenge: boolean
     readonly codeChallengeMethod: CodeChallengeMethod
     readonly includeGrantedScopes: boolean
+    readonly tokenRefreshAnticipationTime: number
     readonly userInfoUrl: string
     readonly revokeTokenUrl: string
     constructor({
@@ -106,6 +109,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         , codeChallenge = false
         , codeChallengeMethod = null
         , includeGrantedScopes = false
+        , tokenRefreshAnticipationTime = 60 * 5 // Five seconds
     }: GoogleOAuth2ProviderOptions) {
         super({
             provider: PROVIDER
@@ -125,6 +129,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         this.codeChallenge = codeChallenge
         this.codeChallengeMethod = codeChallengeMethod
         this.includeGrantedScopes = includeGrantedScopes
+        this.tokenRefreshAnticipationTime = tokenRefreshAnticipationTime
         this.userInfoUrl = GOOGLE_USER_INFO_URL
         this.revokeTokenUrl = GOOGLE_REVOKE_TOKEN_URL
     }
@@ -147,11 +152,11 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
         const code = this.getRequiredParam('code', callbackUrlQueryObj)
         const tokenCredentials = await this.getTokensCredentials(code, options?.token)
-        return this.addTokenExpiryDate(tokenCredentials)
+        return this.addExpiryDateToToken(tokenCredentials)
     }
 
-    public async authRefresh(refreshToken:string, expiryDate: number): Promise<ITokensCredentials> {
-        if (this.calcTokenExpiryDate(expiryDate)) return this.refreshToken(refreshToken)
+    public async authRefresh(refreshToken: string, expiryDate: number): Promise<ITokensCredentials> {
+        if (this.checkTokenExpiryDate(expiryDate)) return this.refreshToken(refreshToken)
         return null
     }
 
@@ -243,21 +248,21 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider implements IFur
         return this.handleResponse(res, tokens, defaultErrorMessage)
     }
 
-    protected calcTokenExpiryDate(expiryDate: number): boolean {
-        const seconds = 60 * 5
+    protected checkTokenExpiryDate(tokenExpiryDate: number, anticipationTime?: number): boolean {
+        const seconds = anticipationTime ?? this.tokenRefreshAnticipationTime
         const currentTimeInSeconds = (new Date().getTime() / 1000) - seconds
-        return expiryDate <= currentTimeInSeconds
+        return tokenExpiryDate <= currentTimeInSeconds
     }
 
-    protected addTokenExpiryDate(tokens: ITokensCredentials): ITokensCredentialsFinal {
-        const expiryDate = (new Date().getTime() / 1000) + tokens.expires_in
+    protected addExpiryDateToToken(tokenCredentials: ITokensCredentials): ITokensCredentialsFinal {
+        const expiryDate = (new Date().getTime() / 1000) + tokenCredentials.expires_in
         return {
-            ...tokens
+            ...tokenCredentials
             , expiry_date: expiryDate
         }
     }
 
-    protected prepareAuthParams(options: IGoogleGenerateAuthOptions = {}): Partial<IGoogleGenerateAuthOptions> {
+    private prepareAuthParams(options: IGoogleGenerateAuthOptions = {}): Partial<IGoogleGenerateAuthOptions> {
         const {
             hd = this.hd
             , state = this.state

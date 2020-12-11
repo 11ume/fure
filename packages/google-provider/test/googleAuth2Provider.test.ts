@@ -162,12 +162,12 @@ test('get access token', async (t) => {
     const res = await googleAauth2.auth('/auth?code=123')
     mock.done()
 
-    t.is(res.tokens.scope, scope)
-    t.is(res.tokens.id_token, idToken)
-    t.is(res.tokens.token_type, tokenType)
-    t.is(res.tokens.expires_in, expiresIn)
-    t.is(res.tokens.access_token, accessToken)
-    t.is(res.tokens.refresh_token, refreshToken)
+    t.is(res.scope, scope)
+    t.is(res.id_token, idToken)
+    t.is(res.token_type, tokenType)
+    t.is(res.expires_in, expiresIn)
+    t.is(res.access_token, accessToken)
+    t.is(res.refresh_token, refreshToken)
 })
 
 test('get access token error', async (t) => {
