@@ -23,7 +23,7 @@ const createFureOAuth2GoogleProvider = (options?: Partial<GoogleOAuth2ProviderOp
 
 test('create generic authentication URL', (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider()
-    const auth = googleAauth2.generateAuthUrl()
+    const auth = googleAauth2.authGenerateUrl()
     const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
@@ -45,12 +45,12 @@ test('create generic authentication URL whit uncommon params', (t) => {
     const codeChallenge = true
     const codeChallengeMethod = CodeChallengeMethod.S256
 
-    const auth = googleAauth2.generateAuthUrl({
+    const auth = googleAauth2.authGenerateUrl({
         hd
-        , login_hint: loginHint
-        , code_challenge: codeChallenge
-        , code_challenge_method: codeChallengeMethod
-        , include_granted_scopes: includeGrantedScopes
+        , loginHint: loginHint
+        , codeChallenge: codeChallenge
+        , codeChallengeMethod: codeChallengeMethod
+        , includeGrantedScopes: includeGrantedScopes
     })
     const { searchParams, origin, pathname } = new URL(auth.url)
 
@@ -87,17 +87,17 @@ test('create generic authentication URL piorice params passed in the method', (t
     const includeGrantedScopes = false
     const state = false
 
-    const auth = googleAauth2.generateAuthUrl({
+    const auth = googleAauth2.authGenerateUrl({
         state
         , prompt
         , scope
-        , client_id: clientId
-        , access_type: accessType
-        , redirect_uri: redirectUri
-        , response_type: responseType
-        , code_challenge: codeChallenge
-        , code_challenge_method: codeChallengeMethod
-        , include_granted_scopes: includeGrantedScopes
+        , clientId: clientId
+        , accessType: accessType
+        , redirectUri: redirectUri
+        , responseType: responseType
+        , codeChallenge: codeChallenge
+        , codeChallengeMethod: codeChallengeMethod
+        , includeGrantedScopes: includeGrantedScopes
     })
 
     const { searchParams, origin, pathname } = new URL(auth.url)
@@ -119,7 +119,7 @@ test('create generic authentication URL whit state enabled', (t) => {
     const googleAauth2 = createFureOAuth2GoogleProvider({
         state: true
     })
-    const auth = googleAauth2.generateAuthUrl()
+    const auth = googleAauth2.authGenerateUrl()
     const { searchParams, origin, pathname } = new URL(auth.url)
 
     t.is(origin + pathname, googleAauth2.authenticationUrl)
@@ -159,15 +159,15 @@ test('get access token', async (t) => {
             , refresh_token: refreshToken
         })
 
-    const res = await googleAauth2.authenticate('/auth?code=123')
+    const res = await googleAauth2.auth('/auth?code=123')
     mock.done()
 
-    t.is(res.tokens.scope, scope)
-    t.is(res.tokens.id_token, idToken)
-    t.is(res.tokens.token_type, tokenType)
-    t.is(res.tokens.expires_in, expiresIn)
-    t.is(res.tokens.access_token, accessToken)
-    t.is(res.tokens.refresh_token, refreshToken)
+    t.is(res.scope, scope)
+    t.is(res.id_token, idToken)
+    t.is(res.token_type, tokenType)
+    t.is(res.expires_in, expiresIn)
+    t.is(res.access_token, accessToken)
+    t.is(res.refresh_token, refreshToken)
 })
 
 test('get access token error', async (t) => {
@@ -184,7 +184,7 @@ test('get access token error', async (t) => {
             , error_description: 'something has gone wrong description'
         })
 
-    const err: FureError = await t.throwsAsync(() => googleAauth2.authenticate('/auth?code=123'))
+    const err: FureError = await t.throwsAsync(() => googleAauth2.auth('/auth?code=123'))
     mock.done()
 
     t.is(err.statusCode, 400)

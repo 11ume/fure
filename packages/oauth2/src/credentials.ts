@@ -1,4 +1,4 @@
-export interface ITokensRequestParams {
+export interface ITokenGetTokenParams {
   /**
    * He authorization code returned from the initial request
    */
@@ -30,14 +30,23 @@ export interface ITokensRequestParams {
   grant_type: string
 }
 
-export interface ITokensCredentialsResponse {
+export interface ITokenRefreshParams {
+  client_id: string
+  client_secret: string
+  grant_type: string
+  refresh_token: string
+}
+
+export interface ITokenCredentials {
   /**
    * The scopes of access granted by the access_token expressed as a list of space-delimited, case-sensitive strings.
    */
   scope?: string
 
   /**
-   * Contains identity information about the user that is digitally signed by Google.
+   * Contains identity information about the user that is digitally signed by OAuth 2.0 provider.
+   * Note: This property is only returned if your request included an identity scope, such as openid, profile, or email.
+   * That value is a JSON Web Token (JWT) that contains digitally signed identity information about the user.
    */
   id_token?: string
 
@@ -47,18 +56,34 @@ export interface ITokensCredentialsResponse {
   token_type?: string
 
   /**
-   * The time in ms at which this token is thought to expire.
+   * The remaining lifetime of the access token in seconds.
    */
   expires_in?: number
 
   /**
-   * This field is only present if the access_type parameter was set to offline in the authentication request.
-   * For details, see Refresh tokens.
+   * This field is only present if the access_type parameter was set to offline in the first authentication request.
    */
   refresh_token?: string
 
   /**
-   * A token that can be sent to a Google API.
+   * The token that your application sends to authorize a OAuth 2.0 provider API request.
    */
   access_token?: string
+}
+
+export interface ITokenGetOptions {
+  /**
+   * Application ID.
+   */
+  clientId?: string
+
+  /**
+   * The URI that you want to redirect the user logging in back to.
+   */
+  redirectUri?: string
+
+  /**
+   * Is a high-entropy cryptographic random string using the unreserved characters.
+   */
+  codeVerifier?: string
 }
