@@ -1,12 +1,12 @@
 import querystring from 'querystring'
-import { Response } from 'node-fetch'
 import { FureProvider } from 'fure-provider'
 import { deleteFalsyValues, getRequiredParam } from 'fure-shared'
 import { v4 as uuidv4 } from 'uuid'
 import { createPkce } from 'fure-oauth2-pkce'
-import { Fetch, fetch } from './fetch'
+import { createError } from 'fure-error'
 import { IGenerateAuthUrlOptions } from './options'
 import { ITokenCredentials, ITokenGetOptions } from './credentials'
+import createTransport, { Transport, RequestOptions, ResponseOptions } from './transport'
 
 type GeneratePkceResult = {
     codeVerifier: string
@@ -17,33 +17,12 @@ type GenerateAuthUrlParams = {
     [key: string]: string | string[] | boolean
 }
 
-type ResponseErrorBody = {
-    error?: string
-    error_description?: string
-}
-
-type RequestHeaders = {
-    [key: string]: string
-}
-
-type PostRequestOptions = {
-    url: string
-    body: string
-    method: string
-    headers: RequestHeaders
-}
 export interface IGenerateAuthUrlParams {
     scope?: string | string[]
     state?: boolean
     client_id?: string
     redirect_uri?: string
     response_type?: string
-}
-
-export type ResponseError = {
-    status: number
-    message: string
-    description: string
 }
 
 export interface IGenerateAuthResult {
@@ -84,7 +63,7 @@ export class FureOAuth2Provider extends FureProvider {
     readonly state: boolean
     readonly scope: string[]
     protected readonly parsedRedirectUrl: URL
-    protected readonly fetch?: Fetch
+    private readonly transport: Transport
     protected constructor({
         provider
         , tokenUrl
@@ -96,7 +75,6 @@ export class FureOAuth2Provider extends FureProvider {
         , scope
     }: IOAuth2ProviderOptions) {
         super(provider)
-        this.fetch = fetch
         this.provider = provider
         this.tokenUrl = tokenUrl
         this.authenticationUrl = authenticationUrl
@@ -106,6 +84,15 @@ export class FureOAuth2Provider extends FureProvider {
         this.state = state
         this.scope = scope
         this.parsedRedirectUrl = new URL(redirectUri)
+        this.transport = createTransport()
+    }
+
+    protected request(options: RequestOptions) {
+        return this.transport.request(options)
+    }
+
+    protected response<T>(options: ResponseOptions<T>) {
+        return this.transport.response(options)
     }
 
     protected generateAuthenticationUrl(params: GenerateAuthUrlParams
@@ -115,44 +102,6 @@ export class FureOAuth2Provider extends FureProvider {
         const cleanedParams = deleteFalsyValues(preparedParams)
         const queryParams = querystring.stringify(cleanedParams)
         return `${this.authenticationUrl}?${queryParams}`
-    }
-
-    protected handleResponseError(status: number
-        , value: ResponseErrorBody
-        , defaultErrorMessage: string): ResponseError {
-        const message = value.error ?? defaultErrorMessage
-        const description = value.error_description ?? 'No description.'
-        const error = {
-            status
-            , message
-            , description
-        }
-
-        return error
-    }
-
-    protected async handleResponse<T>(res: Response
-        , value: T
-        , defaultErrorMessage = 'Unknown'): Promise<T> {
-        if (res.ok) return value
-        const err = this.handleResponseError(res.status, value, defaultErrorMessage)
-        const { status, message, description } = err
-        throw this.error(status, message, description)
-    }
-
-    protected request({
-        url
-        , body
-        , method
-        , headers
-    }: PostRequestOptions): Promise<Response> {
-        const res = this.fetch(url, {
-            body
-            , method
-            , headers
-        })
-
-        return res
     }
 
     protected generateAuthStateParam(state: boolean): string {
@@ -177,19 +126,19 @@ export class FureOAuth2Provider extends FureProvider {
     protected getRequiredParam(id: string, parsedredirectUri: querystring.ParsedUrlQuery): string {
         const param = getRequiredParam(id, parsedredirectUri[id])
         if (param) return param
-        throw this.error(401, `Required param ${id}`, `The ${id} param is missing, or it has been altered.`)
+        throw createError(401, `Required param ${id}`, `The ${id} param is missing, or it has been altered.`)
     }
 
-    private prepareAuthUrlParams(options: GenerateAuthUrlParams
+    private prepareAuthUrlParams(params: GenerateAuthUrlParams
         , state: string
         , codeChallenge: string): GenerateAuthUrlParams {
-        let scope = options.scope
-        if (options.scope instanceof Array) {
-            scope = options.scope.join(' ')
+        let scope = params.scope
+        if (params.scope instanceof Array) {
+            scope = params.scope.join(' ')
         }
 
         return {
-            ...options
+            ...params
             , state
             , scope
             , code_challenge: codeChallenge
