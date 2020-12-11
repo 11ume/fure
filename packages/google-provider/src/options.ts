@@ -1,4 +1,4 @@
-import { IGenerateAuthOptions } from 'fure-oauth2'
+import { IGenerateAuthUrlOptions, IGenerateAuthUrlParams } from 'fure-oauth2'
 
 export enum Prompt {
     none = 'none'
@@ -20,7 +20,7 @@ export enum CodeChallengeMethod {
     S256 = 'S256'
 }
 
-export interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
+export interface IGoogleGenerateAuthUrlOptions extends IGenerateAuthUrlOptions {
 
     /**
      * The hd (hosted domain) parameter streamlines the login process for G Suite
@@ -47,7 +47,7 @@ export interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
      * first time that your application exchanges an authorization code for
      * tokens.
      */
-    access_type?: AccessType
+    accessType?: AccessType
 
     /**
      * Enables applications to use incremental authorization to request
@@ -58,7 +58,7 @@ export interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
      * See the incremental authorization section.
      * @link https://developers.google.com/identity/protocols/oauth2/web-server#incrementalAuth
      */
-    include_granted_scopes?: boolean
+    includeGrantedScopes?: boolean
 
     /**
      * When your app knows which user it is trying to authenticate, it can provide this parameter as a hint to the authentication server. Passing this hint suppresses the account chooser,
@@ -66,7 +66,7 @@ export interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
      * that occur if your app logs in the wrong user account. The value can be either an email address or the sub
      * string, which is equivalent to the user's Google ID.
      */
-    login_hint?: string
+    loginHint?: string
 
     /**
      * A space-delimited, case-sensitive list of prompts to present the user. If you don't specify
@@ -87,12 +87,22 @@ export interface IGoogleGenerateAuthOptions extends IGenerateAuthOptions {
      * exchange. This parameter must be used with the 'code_challenge' parameter. The value of the 'code_challenge_method'
      * defaults to "plain" if not present in the request that includes a 'code_challenge'.
      */
-    code_challenge_method?: CodeChallengeMethod
+    codeChallengeMethod?: CodeChallengeMethod
 
     /**
      * @recommended
      * Specifies an encoded 'code_verifier' that will be used as a server-side challenge during authorization code exchange. This parameter
      * must be used with the 'code_challenge' parameter described above.
      */
+    codeChallenge?: boolean
+}
+
+export interface IGoogleGenerateAuthUrlParams extends IGenerateAuthUrlParams {
+    hd?: string
+    prompt?: Prompt
+    login_hint?: string
+    access_type?: AccessType
     code_challenge?: boolean
+    code_challenge_method?: CodeChallengeMethod
+    include_granted_scopes?: boolean
 }

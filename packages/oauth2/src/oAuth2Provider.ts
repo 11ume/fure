@@ -5,8 +5,8 @@ import { deleteFalsyValues, getRequiredParam } from 'fure-shared'
 import { v4 as uuidv4 } from 'uuid'
 import { createPkce } from 'fure-oauth2-pkce'
 import { Fetch, fetch } from './fetch'
-import { IGenerateAuthOptions, IGetTokenOptions } from './options'
-import { ITokensCredentials } from './credentials'
+import { IGenerateAuthUrlOptions } from './options'
+import { ITokenCredentials, ITokenGetOptions } from './credentials'
 
 type GeneratePkceResult = {
     codeVerifier: string
@@ -32,6 +32,13 @@ type PostRequestOptions = {
     method: string
     headers: RequestHeaders
 }
+export interface IGenerateAuthUrlParams {
+    scope?: string | string[]
+    state?: boolean
+    client_id?: string
+    redirect_uri?: string
+    response_type?: string
+}
 
 export type ResponseError = {
     status: number
@@ -45,13 +52,13 @@ export interface IGenerateAuthResult {
 }
 
 export interface IAuthenticateOptions {
-    token?: IGetTokenOptions
+    token?: ITokenGetOptions
 }
 
 export interface IFureOAuth2Provider<T> {
-    authGenerateUrl(options: Partial<IGenerateAuthOptions>): IGenerateAuthResult
+    authGenerateUrl(options: Partial<IGenerateAuthUrlOptions>): IGenerateAuthResult
     auth(url: string, options?: IAuthenticateOptions): Promise<T>
-    authRefresh?(refreshToken:string, expiryDate: number): Promise<ITokensCredentials>
+    authRefresh?(refreshToken:string, expiryDate: number): Promise<ITokenCredentials>
     authRevoke?(accessToken: string): Promise<any>
     authVerify?(): Promise<any>
 }

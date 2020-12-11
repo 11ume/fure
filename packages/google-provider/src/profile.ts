@@ -1,4 +1,4 @@
-export interface IProfileParams {
+export interface IProfileOptions {
     /**
      * API key. Your API key identifies your project and provides you with API access, quota, and reports.
      * Required unless you provide an OAuth 2.0 token.

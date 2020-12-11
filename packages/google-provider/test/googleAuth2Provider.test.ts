@@ -47,10 +47,10 @@ test('create generic authentication URL whit uncommon params', (t) => {
 
     const auth = googleAauth2.authGenerateUrl({
         hd
-        , login_hint: loginHint
-        , code_challenge: codeChallenge
-        , code_challenge_method: codeChallengeMethod
-        , include_granted_scopes: includeGrantedScopes
+        , loginHint: loginHint
+        , codeChallenge: codeChallenge
+        , codeChallengeMethod: codeChallengeMethod
+        , includeGrantedScopes: includeGrantedScopes
     })
     const { searchParams, origin, pathname } = new URL(auth.url)
 
@@ -91,13 +91,13 @@ test('create generic authentication URL piorice params passed in the method', (t
         state
         , prompt
         , scope
-        , client_id: clientId
-        , access_type: accessType
-        , redirect_uri: redirectUri
-        , response_type: responseType
-        , code_challenge: codeChallenge
-        , code_challenge_method: codeChallengeMethod
-        , include_granted_scopes: includeGrantedScopes
+        , clientId: clientId
+        , accessType: accessType
+        , redirectUri: redirectUri
+        , responseType: responseType
+        , codeChallenge: codeChallenge
+        , codeChallengeMethod: codeChallengeMethod
+        , includeGrantedScopes: includeGrantedScopes
     })
 
     const { searchParams, origin, pathname } = new URL(auth.url)

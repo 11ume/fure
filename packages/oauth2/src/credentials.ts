@@ -1,4 +1,4 @@
-export interface ITokensRequestParams {
+export interface ITokenGetTokenParams {
   /**
    * He authorization code returned from the initial request
    */
@@ -30,7 +30,14 @@ export interface ITokensRequestParams {
   grant_type: string
 }
 
-export interface ITokensCredentials {
+export interface ITokenRefreshParams {
+  client_id: string
+  client_secret: string
+  grant_type: string
+  refresh_token: string
+}
+
+export interface ITokenCredentials {
   /**
    * The scopes of access granted by the access_token expressed as a list of space-delimited, case-sensitive strings.
    */
@@ -62,4 +69,21 @@ export interface ITokensCredentials {
    * The token that your application sends to authorize a OAuth 2.0 provider API request.
    */
   access_token?: string
+}
+
+export interface ITokenGetOptions {
+  /**
+   * Application ID.
+   */
+  clientId?: string
+
+  /**
+   * The URI that you want to redirect the user logging in back to.
+   */
+  redirectUri?: string
+
+  /**
+   * Is a high-entropy cryptographic random string using the unreserved characters.
+   */
+  codeVerifier?: string
 }

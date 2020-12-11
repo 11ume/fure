@@ -1,8 +1,8 @@
-export interface IGenerateAuthOptions {
+export interface IGenerateAuthUrlOptions {
     /**
      * Application ID.
      */
-    client_id?: string
+    clientId?: string
 
     /**
      * @required
@@ -13,14 +13,14 @@ export interface IGenerateAuthOptions {
      * @value token - Response data is included as a URL fragment and contains an access token. Desktop apps must use this setting for response_type. This is most
      * useful when the client will be handling the token.
      */
-    response_type?: string
+    responseType?: string
 
     /**
      * @required
      * Determines where the API server redirects the user after the user completes
      * the authorization flow.
      */
-    redirect_uri?: string
+    redirectUri?: string
 
     /**
      * @required
@@ -38,21 +38,4 @@ export interface IGenerateAuthOptions {
      * back to you, unchanged, in your redirect URI.
      */
     state?: boolean
-}
-
-export interface IGetTokenOptions {
-    /**
-     * Application ID.
-     */
-    clientId?: string
-
-    /**
-     * The URI that you want to redirect the user logging in back to.
-     */
-    redirectUri?: string
-
-    /**
-     * Is a high-entropy cryptographic random string using the unreserved characters.
-     */
-    codeVerifier?: string
 }
