@@ -1,12 +1,17 @@
 import querystring from 'querystring'
-import { FureProvider } from 'fure-provider'
-import { deleteFalsyValues, getRequiredParam } from 'fure-shared'
 import { v4 as uuidv4 } from 'uuid'
+import { FureProvider } from 'fure-provider'
 import { createPkce } from 'fure-oauth2-pkce'
 import { createError } from 'fure-error'
+import { deleteFalsyValues, getRequiredParam } from 'fure-shared'
 import { IGenerateAuthUrlOptions } from './options'
 import { ITokenCredentials, ITokenGetOptions } from './credentials'
-import createTransport, { Transport, RequestOptions, ResponseOptions } from './transport'
+import createTransport, {
+    Transport
+    , Response
+    , RequestOptions
+    , ResponseOptions
+} from './transport'
 
 type GeneratePkceResult = {
     codeVerifier: string
@@ -41,11 +46,12 @@ export interface IFureOAuth2Provider<T> {
     authRevoke?(accessToken: string): Promise<any>
     authVerify?(): Promise<any>
 }
-
-export interface IOAuth2ProviderOptions {
+interface IOAuth2Options {
     readonly provider: string
     readonly tokenUrl: string
     readonly authenticationUrl: string
+}
+export interface IOAuth2ProviderOptions {
     readonly clientId: string
     readonly clientSecret: string
     readonly redirectUri: string
@@ -68,7 +74,8 @@ export class FureOAuth2Provider extends FureProvider {
         provider
         , tokenUrl
         , authenticationUrl
-        , clientId
+    }: IOAuth2Options, {
+        clientId
         , clientSecret
         , redirectUri
         , state
@@ -91,8 +98,8 @@ export class FureOAuth2Provider extends FureProvider {
         return this.transport.request(options)
     }
 
-    protected response<T>(options: ResponseOptions<T>) {
-        return this.transport.response(options)
+    protected response<T>(res: Response, options: ResponseOptions<T>) {
+        return this.transport.response(res, options)
     }
 
     protected generateAuthenticationUrl(params: GenerateAuthUrlParams

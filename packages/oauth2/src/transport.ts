@@ -1,6 +1,7 @@
 import { Response } from 'node-fetch'
 import { Fetch, fetch } from './fetch'
 import { createError } from 'fure-error'
+export { Response } from 'node-fetch'
 
 export type RequestHeaders = {
     [key: string]: string
@@ -14,9 +15,8 @@ export type RequestOptions = {
 }
 
 export type ResponseOptions<T> = {
-    res: Response
-    , value: T
-    , defaultErrorMessage?: string
+    value: T
+    , errorMessage?: string
 }
 
 type ResponseErrorBody = {
@@ -51,14 +51,13 @@ export class Transport {
         return res
     }
 
-    public async response<T>(options: ResponseOptions<T>): Promise<T> {
+    public async response<T>(res: Response, options: ResponseOptions<T>): Promise<T> {
         const {
-            res
-            , value
-            , defaultErrorMessage = 'Unknown'
+            value
+            , errorMessage = 'Unknown'
         } = options
         if (res.ok) return value
-        const err = this.handleResponseError(res.status, value, defaultErrorMessage)
+        const err = this.handleResponseError(res.status, value, errorMessage)
         const { status, message, description } = err
         throw createError(status, message, description)
     }

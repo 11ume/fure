@@ -1,6 +1,6 @@
 import test from 'ava'
 import nock from 'nock'
-import { FureError } from 'fure-provider/src/error'
+import { FureError } from 'fure-error'
 import fureOAuth2GoogleProvider, {
     GoogleOAuth2ProviderOptions
     , AccessType

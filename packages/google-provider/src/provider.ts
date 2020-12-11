@@ -31,17 +31,12 @@ export interface IGoogleOAuth2ProviderSelfOptions extends IOAuth2ProviderOptions
     readonly tokenRefreshAnticipationTime?: number
 }
 
-export type GoogleOAuth2ProviderOptions = Omit<IGoogleOAuth2ProviderSelfOptions,
-    'provider'
-    | 'tokenUrl'
-    | 'authenticationUrl'>
-
 interface IGenerateGoogleAuthResult extends IGenerateAuthResult {
     codeVerifier?: string | null
     codeChallenge?: string | null
 }
 
-interface ITokensCredentialsFinal extends ITokenCredentials {
+interface ITokensCredentialsExtended extends ITokenCredentials {
     expiry_date: number
 }
 
@@ -58,6 +53,12 @@ enum GrantTypes {
 /** Authentication provider. */
 const PROVIDER = 'google'
 
+/**
+ * Default list of scopes that identify the resources that your application
+ * could access on the user's behalf.
+ */
+const GOOGOLE_SCOPE = ['openid', 'profile', 'email']
+
 /** Base URL for token retrieval. */
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 
@@ -70,17 +71,11 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 /** Base URL for obtain user information of some access token. */
 const GOOGLE_USER_INFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo'
 
-/**
- * Default list of scopes that identify the resources that your application
- * could access on the user's behalf.
- */
-const GOOGOLE_SCOPE = ['openid', 'profile', 'email']
-
 /** Anticipation time before expiration of an authentication access token */
 const TOKEN_REFRESH_ANTICIPATION_TIME = 60 * 5 // Five seconds
 
 export class FureGoogleOAuth2Provider extends FureOAuth2Provider
-    implements IFureOAuth2Provider<ITokensCredentialsFinal> {
+    implements IFureOAuth2Provider<ITokensCredentialsExtended> {
     readonly hd: string
     readonly prompt: Prompt
     readonly accessType: AccessType
@@ -105,12 +100,13 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
         , codeChallengeMethod = null
         , includeGrantedScopes = false
         , tokenRefreshAnticipationTime = TOKEN_REFRESH_ANTICIPATION_TIME
-    }: GoogleOAuth2ProviderOptions) {
+    }: IGoogleOAuth2ProviderSelfOptions) {
         super({
             provider: PROVIDER
             , tokenUrl: GOOGLE_TOKEN_URL
             , authenticationUrl: GOOGLE_AUTH_URL
-            , clientId
+        }, {
+            clientId
             , clientSecret
             , redirectUri
             , state
@@ -140,7 +136,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
         }
     }
 
-    public async auth(currentUrl: string, options?: IAuthenticateOptions): Promise<ITokensCredentialsFinal> {
+    public async auth(currentUrl: string, options?: IAuthenticateOptions): Promise<ITokensCredentialsExtended> {
         const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
         const code = this.getRequiredParam('code', callbackUrlQueryObj)
@@ -153,7 +149,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
         return null
     }
 
-    public async getUserInfo(options: Partial<IProfileOptions>): Promise<IProfileResponse> {
+    public async getProfile(options: Partial<IProfileOptions>): Promise<IProfileResponse> {
         const params = {
             alt: 'json'
             , ...options
@@ -168,12 +164,11 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
             }
         })
 
-        const defaultErrorMessage = 'In request for get user info.'
         const value: IProfileResponse = await res.json()
-        return this.response<IProfileResponse>({
-            res
-            , value
-            , defaultErrorMessage
+        const errorMessage = 'In request for get user info.'
+        return this.response<IProfileResponse>(res, {
+            value
+            , errorMessage
         })
     }
 
@@ -191,12 +186,11 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
             }
         })
 
-        const defaultErrorMessage = 'In request for revoke authentication access token.'
         const value = await res.json()
-        return this.response({
-            res
-            , value
-            , defaultErrorMessage
+        const errorMessage = 'In request for revoke authentication access token.'
+        return this.response(res, {
+            value
+            , errorMessage
         })
     }
 
@@ -225,12 +219,11 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
             }
         })
 
-        const defaultErrorMessage = 'In request for get access tokens.'
         const value: ITokenCredentials = await res.json()
-        return this.response<ITokenCredentials>({
-            res
-            , value
-            , defaultErrorMessage
+        const errorMessage = 'In request for get access tokens.'
+        return this.response<ITokenCredentials>(res, {
+            value
+            , errorMessage
         })
     }
 
@@ -252,12 +245,11 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
             }
         })
 
-        const defaultErrorMessage = 'In request for refresh access tokens.'
-        const value = await res.json()
-        return this.response({
-            res
-            , value
-            , defaultErrorMessage
+        const value: ITokenCredentials = await res.json()
+        const errorMessage = 'In request for refresh access tokens.'
+        return this.response(res, {
+            value
+            , errorMessage
         })
     }
 
@@ -267,7 +259,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
         return tokenExpiryDate <= currentTimeInSeconds
     }
 
-    protected addExpiryDateToToken(tokenCredentials: ITokenCredentials): ITokensCredentialsFinal {
+    protected addExpiryDateToToken(tokenCredentials: ITokenCredentials): ITokensCredentialsExtended {
         const expiryDate = (new Date().getTime() / 1000) + tokenCredentials.expires_in
         return {
             ...tokenCredentials
