@@ -156,8 +156,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
     public async getProfile(options: Partial<IProfileOptions> = {}): Promise<IProfileResponse> {
         const url = this.userInfoUrl
         const params = {
-            alt: 'json'
-            , ...options
+            ...options
+            , alt: options.alt ?? 'json'
         }
         const body = querystring.stringify(params)
         const res = await this.request({
