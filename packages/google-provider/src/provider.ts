@@ -20,7 +20,7 @@ import {
 } from './options'
 import { IProfileOptions, IProfileResponse } from './profile'
 
-export interface IGoogleOAuth2ProviderSelfOptions extends IOAuth2ProviderOptions {
+export interface IGoogleOAuth2ProviderOptions extends IOAuth2ProviderOptions {
     readonly hd?: string
     readonly prompt?: Prompt
     readonly accessType?: AccessType
@@ -46,8 +46,11 @@ enum GrantTypes {
 }
 
 /**
+ * Relevant information
  * OpenID Google .well-known
  * @link https://accounts.google.com/.well-known/openid-configuration
+ * Using OAuth 2.0 for Web Server Applications
+ * @link https://developers.google.com/identity/protocols/oauth2/web-server
  */
 
 /** Authentication provider. */
@@ -65,7 +68,7 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 /** The base endpoint to revoke tokens. */
 const GOOGLE_REVOKE_TOKEN_URL = 'https://oauth2.googleapis.com/revoke'
 
-/** Base URL for handle authentication. */
+/** Base URL for redirect to Google's authorization server. */
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 
 /** Base URL for obtain user information of some access token. */
@@ -100,7 +103,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
         , codeChallengeMethod = null
         , includeGrantedScopes = false
         , tokenRefreshAnticipationTime = TOKEN_REFRESH_ANTICIPATION_TIME
-    }: IGoogleOAuth2ProviderSelfOptions) {
+    }: IGoogleOAuth2ProviderOptions) {
         super({
             provider: PROVIDER
             , tokenUrl: GOOGLE_TOKEN_URL
