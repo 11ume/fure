@@ -13,7 +13,7 @@
     "test": "ava",
     "build": "yarn run clean && yarn run compile",
     "clean": "rm -rf ./dist",
-    "compile": "tsc -p tsconfig.json",
+    "compile": "tsc -p tsconfig.build.json",
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
