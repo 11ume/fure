@@ -2,14 +2,14 @@ import test from 'ava'
 import nock from 'nock'
 import { FureError } from 'fure-error'
 import fureOAuth2GoogleProvider, {
-    GoogleOAuth2ProviderOptions
+    IGoogleOAuth2ProviderOptions
     , AccessType
     , CodeChallengeMethod
     , ResponseType
     , Prompt
 } from '..'
 
-const createFureOAuth2GoogleProvider = (options?: Partial<GoogleOAuth2ProviderOptions>) => {
+const createFureOAuth2GoogleProvider = (options?: Partial<IGoogleOAuth2ProviderOptions>) => {
     const clientId = 'foobar'
     const clientSecret = 'abcd'
     const redirectUri = 'http://localhost:3000/auth/google/callback'

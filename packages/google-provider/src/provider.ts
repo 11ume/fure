@@ -153,13 +153,14 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
     }
 
     public async getProfile(options: Partial<IProfileOptions>): Promise<IProfileResponse> {
+        const url = this.userInfoUrl
         const params = {
             alt: 'json'
             , ...options
         }
         const body = querystring.stringify(params)
         const res = await this.request({
-            url: this.userInfoUrl
+            url
             , body
             , method: 'POST'
             , headers: {
@@ -175,13 +176,14 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
         })
     }
 
-    public async revokeToken(accessToken: string) {
+    public async revokeToken(accessToken: string): Promise<unknown> {
+        const url = this.revokeTokenUrl
         const body = querystring.stringify({
             token: accessToken
         })
 
         const res = await this.request({
-            url: this.revokeTokenUrl
+            url
             , body
             , method: 'POST'
             , headers: {
@@ -198,11 +200,8 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
     }
 
     protected async getTokensCredentials(code: string, options: ITokenGetOptions = {}): Promise<ITokenCredentials> {
-        const {
-            clientId
-            , redirectUri
-            , codeVerifier
-        } = options
+        const { clientId, redirectUri, codeVerifier } = options
+        const url = this.tokenUrl
         const params: Partial<ITokenGetTokenParams> = {
             code
             , grant_type: GrantTypes.authorizationCode
@@ -214,7 +213,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
 
         const body = querystring.stringify(params)
         const res = await this.request({
-            url: this.tokenUrl
+            url
             , body
             , method: 'POST'
             , headers: {
@@ -231,6 +230,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
     }
 
     protected async refreshToken(refreshToken: string, clientId?: string): Promise<ITokenCredentials> {
+        const url = this.tokenUrl
         const params: Partial<ITokenRefreshParams> = {
             grant_type: GrantTypes.refreshToken
             , client_secret: this.clientSecret
@@ -240,7 +240,7 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
 
         const body = querystring.stringify(params)
         const res = await this.request({
-            url: this.tokenUrl
+            url
             , body
             , method: 'POST'
             , headers: {
