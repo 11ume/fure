@@ -1,6 +1,6 @@
 {
   "name": "fure-error",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "description": "Fure error handler",
   "main": "dist/index.js",
   "types": "index.ts",
