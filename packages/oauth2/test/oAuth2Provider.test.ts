@@ -1,5 +1,5 @@
 import test from 'ava'
-import { DummyFureOAuth2Provider } from './healpers/dummyFureOAuth2Provider'
+import { FureOAuth2ProviderDummy } from './healpers/fureOAuth2Provider.dummy'
 import { FureOAuth2Provider } from '..'
 
 const provider = 'provider test'
@@ -15,11 +15,12 @@ type Options = {
     state: boolean
 }
 
-const createOAuth2Provider = ({ state = false }: Options) => new DummyFureOAuth2Provider({
+const createOAuth2Provider = ({ state = false }: Options) => new FureOAuth2ProviderDummy({
     provider
     , authenticationUrl
     , tokenUrl
-    , state
+}, {
+    state
     , scope
     , clientId
     , clientSecret

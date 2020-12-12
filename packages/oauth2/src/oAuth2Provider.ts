@@ -46,7 +46,7 @@ export interface IFureOAuth2Provider<T> {
     authRevoke?(accessToken: string): Promise<any>
     authVerify?(): Promise<any>
 }
-interface IOAuth2Options {
+export interface IOAuth2Options {
     readonly provider: string
     readonly tokenUrl: string
     readonly authenticationUrl: string
