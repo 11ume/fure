@@ -1,6 +1,6 @@
 {
   "name": "fure-google-provider",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "description": "Google OAuth 2.0 authentication provider",
   "main": "dist/index.js",
   "types": "index.ts",
@@ -17,7 +17,7 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
-    "fure-oauth2": "^1.0.0-alpha.4"
+    "fure-oauth2": "^1.0.0-alpha.5"
   },
   "devDependencies": {
     "@ava/babel": "^1.0.1",

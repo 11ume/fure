@@ -1,6 +1,6 @@
 {
   "name": "fure-oauth2-pkce",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "description": "Proof Key for code exchange package",
   "main": "dist/index.js",
   "types": "index.ts",
