@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { FureProvider } from 'fure-provider'
 import { createPkce } from 'fure-oauth2-pkce'
 import { createError } from 'fure-error'
-import { deleteFalsyValues, getRequiredParam } from 'fure-shared'
+import { deleteFalsyValues, getRequiredParam } from './utils'
 import { IGenerateAuthUrlOptions } from './options'
 import { ITokenCredentials, ITokenGetOptions } from './credentials'
 import createTransport, {
