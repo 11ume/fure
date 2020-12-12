@@ -139,8 +139,9 @@ export class FureGoogleOAuth2Provider extends FureOAuth2Provider
         }
     }
 
-    public async auth(currentUrl: string, options?: IAuthenticateOptions): Promise<ITokensCredentialsExtended> {
-        const callbackUrlObj = new URL(`${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentUrl}`)
+    public async auth(currentPath: string, options?: IAuthenticateOptions): Promise<ITokensCredentialsExtended> {
+        const currentUrl = `${this.parsedRedirectUrl.protocol}//${this.parsedRedirectUrl.host}${currentPath}`
+        const callbackUrlObj = new URL(currentUrl)
         const callbackUrlQueryObj = this.getQueryObjectFromUrl(callbackUrlObj)
         const code = this.getRequiredParam('code', callbackUrlQueryObj)
         const tokenCredentials = await this.getTokensCredentials(code, options?.token)
