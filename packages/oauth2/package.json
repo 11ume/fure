@@ -1,6 +1,6 @@
 {
   "name": "fure-oauth2",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.6",
   "description": "Base OAuth 2.0 provider",
   "main": "dist/index.js",
   "types": "index.ts",
