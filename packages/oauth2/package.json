@@ -1,6 +1,6 @@
 {
   "name": "fure-oauth2",
-  "version": "1.0.0-alpha.7",
+  "version": "1.0.0-alpha.8",
   "description": "Base OAuth 2.0 provider",
   "main": "dist/index.js",
   "types": "index.ts",
@@ -17,9 +17,9 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
-    "fure-error": "^1.0.0-alpha.5",
-    "fure-oauth2-pkce": "^1.0.0-alpha.5",
-    "fure-provider": "^1.0.0-alpha.5",
+    "fure-error": "^1.0.0-alpha.8",
+    "fure-oauth2-pkce": "^1.0.0-alpha.8",
+    "fure-provider": "^1.0.0-alpha.8",
     "uuid": "^8.3.1"
   },
   "devDependencies": {
