@@ -46,11 +46,13 @@ export interface IFureOAuth2Provider<T> {
     authRevoke?(accessToken: string): Promise<any>
     authVerify?(): Promise<any>
 }
+    
 export interface IOAuth2Options {
     readonly provider: string
     readonly tokenUrl: string
     readonly authenticationUrl: string
 }
+
 export interface IOAuth2ProviderOptions {
     readonly clientId: string
     readonly clientSecret: string
